@@ -2,7 +2,10 @@ package ru.alexey.stayflow.hotel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Import;
+import ru.alexey.stayflow.common.config.CommonWebConfig;
 
+@Import(CommonWebConfig.class)
 @SpringBootApplication
 public class HotelServiceApplication {
 
