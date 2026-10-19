@@ -1,0 +1,67 @@
+# Maven
+target/
+build/
+out/
+bin/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Java
+*.class
+*.war
+*.ear
+*.hprof
+hs_err_pid*
+replay_pid*
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.apt_generated/
+.run/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+application-secret.yml
+application-secret.yaml
+*.pem
+*.p12
+*.jks
+
+# H2
+*.mv.db
+*.trace.db
+*.lock.db
+*.h2.db
+
+# Test output
+surefire-reports/
+failsafe-reports/
+jacoco.exec
+
+# Temp
+*.tmp
+*.orig
+*.rej
