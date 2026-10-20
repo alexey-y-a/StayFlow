@@ -21,7 +21,7 @@ import ru.alexey.stayflow.hotel.repository.HotelRepository;
 import ru.alexey.stayflow.hotel.repository.RoomRepository;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class HotelServiceIntegrationTest {
 

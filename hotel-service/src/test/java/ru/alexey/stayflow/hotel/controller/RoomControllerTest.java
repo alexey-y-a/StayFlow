@@ -14,10 +14,12 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.alexey.stayflow.common.config.CommonWebConfig;
@@ -28,6 +30,8 @@ import ru.alexey.stayflow.hotel.dto.RoomResponse;
 import ru.alexey.stayflow.hotel.model.RoomType;
 import ru.alexey.stayflow.hotel.service.RoomService;
 
+@ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(RoomController.class)
 @Import(CommonWebConfig.class)
 class RoomControllerTest {
