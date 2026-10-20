@@ -16,6 +16,8 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
     boolean existsByRoomIdAndStatusAndStartDateLessThanAndEndDateGreaterThan(
             Long roomId, ReservationStatus status, LocalDate endDate, LocalDate startDate);
 
+    boolean existsByRoomId(Long roomId);
+
     long countByRoomIdAndStatusAndEndDateGreaterThan(
             Long roomId, ReservationStatus status, LocalDate date);
 
