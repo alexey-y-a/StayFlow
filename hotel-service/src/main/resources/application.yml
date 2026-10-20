@@ -31,6 +31,12 @@ eureka:
 stayflow:
   seed:
     enabled: true
+  security:
+    jwt:
+      secret: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      issuer: https://stayflow.example
+      ttl: 1h
+      issue: false
 
 management:
   endpoints:

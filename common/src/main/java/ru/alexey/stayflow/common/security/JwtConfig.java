@@ -1,7 +1,9 @@
 package ru.alexey.stayflow.common.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,5 +42,19 @@ public class JwtConfig {
     @ConditionalOnProperty(prefix = "stayflow.security.jwt", name = "issue", havingValue = "true")
     public JwtTokenService jwtTokenService(JwtEncoder encoder, JwtProperties properties) {
         return new JwtTokenService(encoder, properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public ApiAuthenticationEntryPoint apiAuthenticationEntryPoint(ObjectMapper objectMapper) {
+        return new ApiAuthenticationEntryPoint(objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public ApiAccessDeniedHandler apiAccessDeniedHandler(ObjectMapper objectMapper) {
+        return new ApiAccessDeniedHandler(objectMapper);
     }
 }
