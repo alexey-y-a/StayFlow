@@ -15,6 +15,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.alexey.stayflow.common.web.TraceHeaders;
 import ru.alexey.stayflow.hotel.repository.HotelRepository;
 import ru.alexey.stayflow.hotel.repository.RoomRepository;
 
@@ -26,7 +27,8 @@ import ru.alexey.stayflow.hotel.repository.RoomRepository;
             "eureka.client.enabled=false",
             "stayflow.seed.enabled=false",
             "stayflow.security.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
-            "stayflow.security.jwt.issuer=https://stayflow.example"
+            "stayflow.security.jwt.issuer=https://stayflow.example",
+            "stayflow.security.internal-api-key=test-internal-key"
         })
 class SecurityIntegrationTest {
 
@@ -76,6 +78,38 @@ class SecurityIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                 .andExpect(jsonPath("$.status").value(403));
+    }
+
+    @Test
+    void internalEndpointRequiresInternalKey() throws Exception {
+        mockMvc.perform(post("/api/rooms/1/confirm-availability")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "bookingId": "11111111-1111-1111-1111-111111111111",
+                                  "requestId": "req-internal",
+                                  "startDate": "2026-11-01",
+                                  "endDate": "2026-11-05"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void internalEndpointAcceptsValidKey() throws Exception {
+        mockMvc.perform(post("/api/rooms/999/confirm-availability")
+                        .header(TraceHeaders.INTERNAL_API_KEY, "test-internal-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "bookingId": "11111111-1111-1111-1111-111111111111",
+                                  "requestId": "req-internal",
+                                  "startDate": "2026-11-01",
+                                  "endDate": "2026-11-05"
+                                }
+                                """))
+                .andExpect(status().isNotFound());
     }
 
     @Test

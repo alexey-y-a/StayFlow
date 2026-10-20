@@ -37,6 +37,7 @@ stayflow:
       issuer: https://stayflow.example
       ttl: 1h
       issue: false
+    internal-api-key: ${INTERNAL_API_KEY:dev-internal-key}
 
 management:
   endpoints:
