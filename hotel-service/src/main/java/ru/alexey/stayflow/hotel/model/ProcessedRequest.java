@@ -9,6 +9,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,12 @@ public class ProcessedRequest {
 
     @Column(name = "result_code", nullable = false, length = 40)
     private String resultCode;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

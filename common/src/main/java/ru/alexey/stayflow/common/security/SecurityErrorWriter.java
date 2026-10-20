@@ -13,12 +13,12 @@ import ru.alexey.stayflow.common.error.ErrorCode;
 import ru.alexey.stayflow.common.error.ErrorDTO;
 import ru.alexey.stayflow.common.web.TraceHeaders;
 
-final class SecurityErrorWriter {
+public final class SecurityErrorWriter {
 
     private SecurityErrorWriter() {
     }
 
-    static void write(
+    public static void write(
             ObjectMapper objectMapper,
             HttpServletRequest request,
             HttpServletResponse response,

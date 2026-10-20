@@ -1,6 +1,8 @@
 package ru.alexey.stayflow.hotel.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -13,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import ru.alexey.stayflow.common.security.ApiAccessDeniedHandler;
 import ru.alexey.stayflow.common.security.ApiAuthenticationEntryPoint;
@@ -28,11 +31,21 @@ public class SecurityConfig {
     private final ApiAccessDeniedHandler accessDeniedHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public InternalApiKeyFilter internalApiKeyFilter(
+            @Value("${stayflow.security.internal-api-key}") String internalApiKey, ObjectMapper objectMapper) {
+        return new InternalApiKeyFilter(internalApiKey, objectMapper);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, InternalApiKeyFilter internalApiKeyFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(internalApiKeyFilter, BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health", "/actuator/info")
+                        .permitAll()
+                        .requestMatchers("/api/rooms/*/confirm-availability", "/api/rooms/*/release")
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
