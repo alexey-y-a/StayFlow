@@ -4,8 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 import ru.alexey.stayflow.common.config.CommonWebConfig;
+import ru.alexey.stayflow.common.security.JwtConfig;
 
-@Import(CommonWebConfig.class)
+@Import({CommonWebConfig.class, JwtConfig.class})
 @SpringBootApplication
 public class HotelServiceApplication {
 
