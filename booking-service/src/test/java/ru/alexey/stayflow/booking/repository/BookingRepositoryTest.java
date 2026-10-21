@@ -11,12 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ActiveProfiles;
 import ru.alexey.stayflow.booking.model.Booking;
 import ru.alexey.stayflow.booking.model.BookingEvent;
 import ru.alexey.stayflow.booking.model.BookingStatus;
 import ru.alexey.stayflow.booking.model.Role;
 import ru.alexey.stayflow.booking.model.User;
 
+@ActiveProfiles("test")
 @DataJpaTest
 class BookingRepositoryTest {
 
