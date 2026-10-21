@@ -29,6 +29,11 @@ eureka:
     prefer-ip-address: true
 
 stayflow:
+  booking:
+    recovery:
+      enabled: true
+      interval: PT30S
+      pending-timeout: PT2M
   seed:
     enabled: true
   hotel:

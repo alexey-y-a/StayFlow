@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.alexey.stayflow.booking.model.Booking;
 import ru.alexey.stayflow.booking.model.BookingStatus;
+import ru.alexey.stayflow.booking.model.CompensationStatus;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
@@ -26,4 +27,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Page<Booking> findByUser_IdAndStatus(Long userId, BookingStatus status, Pageable pageable);
 
     List<Booking> findByStatusAndCreatedAtBefore(BookingStatus status, Instant cutoff);
+
+    List<Booking> findByCompensationStatus(CompensationStatus status);
 }

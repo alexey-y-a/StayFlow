@@ -3,6 +3,9 @@ eureka:
     enabled: false
 
 stayflow:
+  booking:
+    recovery:
+      enabled: false
   seed:
     enabled: false
 
