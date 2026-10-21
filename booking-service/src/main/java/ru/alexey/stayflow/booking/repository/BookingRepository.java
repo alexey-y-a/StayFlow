@@ -6,13 +6,20 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.alexey.stayflow.booking.model.Booking;
 import ru.alexey.stayflow.booking.model.BookingStatus;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
+    @EntityGraph(attributePaths = "user")
     Optional<Booking> findByRequestId(String requestId);
+
+    @Query("select b from Booking b join fetch b.user where b.id = :id")
+    Optional<Booking> findByIdWithUser(@Param("id") UUID id);
 
     Page<Booking> findByUser_Id(Long userId, Pageable pageable);
 
