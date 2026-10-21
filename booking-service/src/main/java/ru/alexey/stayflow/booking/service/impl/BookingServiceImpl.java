@@ -3,6 +3,8 @@ package ru.alexey.stayflow.booking.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ import ru.alexey.stayflow.booking.mapper.BookingMapper;
 import ru.alexey.stayflow.booking.model.Booking;
 import ru.alexey.stayflow.booking.model.BookingEvent;
 import ru.alexey.stayflow.booking.model.BookingStatus;
+import ru.alexey.stayflow.booking.model.CompensationStatus;
 import ru.alexey.stayflow.booking.model.User;
 import ru.alexey.stayflow.booking.repository.BookingEventRepository;
 import ru.alexey.stayflow.booking.repository.BookingRepository;
@@ -52,6 +56,9 @@ public class BookingServiceImpl implements BookingService {
     private final HotelGateway hotelGateway;
     private final BookingMapper bookingMapper;
     private final TransactionTemplate transactionTemplate;
+
+    @Value("${stayflow.booking.recovery.pending-timeout:PT2M}")
+    private Duration pendingTimeout;
 
     @Override
     public BookingResponse create(String username, String requestId, CreateBookingRequest request) {
@@ -108,7 +115,8 @@ public class BookingServiceImpl implements BookingService {
                     log.info("Room {} is not available, trying next candidate", candidate.roomId());
                 } catch (RemoteServiceException exception) {
                     markCancelled(bookingId, "Hotel service error");
-                    releaseQuietly(candidate.roomId(), bookingId, releaseRequestId(requestId));
+                    boolean released = releaseQuietly(candidate.roomId(), bookingId, releaseRequestId(requestId));
+                    markCompensation(bookingId, released ? CompensationStatus.DONE : CompensationStatus.PENDING);
                     throw exception;
                 }
             }
@@ -148,11 +156,61 @@ public class BookingServiceImpl implements BookingService {
 
         MDC.put(TraceHeaders.MDC_BOOKING_ID, bookingId.toString());
         try {
-            releaseQuietly(booking.getRoomId(), bookingId, releaseRequestId(booking.getRequestId()));
+            boolean released = releaseQuietly(booking.getRoomId(), bookingId, releaseRequestId(booking.getRequestId()));
             markCancelled(bookingId, "Cancelled by user");
+            markCompensation(bookingId, released ? CompensationStatus.DONE : CompensationStatus.PENDING);
             log.info("Booking {} cancelled", bookingId);
         } finally {
             MDC.remove(TraceHeaders.MDC_BOOKING_ID);
+        }
+    }
+
+    @Override
+    public void recover() {
+        Instant cutoff = Instant.now().minus(pendingTimeout);
+        for (Booking booking : bookingRepository.findByStatusAndCreatedAtBefore(BookingStatus.PENDING, cutoff)) {
+            recoverPending(booking);
+        }
+        for (Booking booking : bookingRepository.findByCompensationStatus(CompensationStatus.PENDING)) {
+            retryCompensation(booking);
+        }
+    }
+
+    private void recoverPending(Booking booking) {
+        UUID bookingId = booking.getId();
+        MDC.put(TraceHeaders.MDC_BOOKING_ID, bookingId.toString());
+        try {
+            HotelConfirmResponse confirmation = hotelGateway.confirmAvailability(
+                    booking.getRoomId(),
+                    bookingId,
+                    confirmRequestId(booking.getRequestId(), booking.getRoomId()),
+                    booking.getStartDate(),
+                    booking.getEndDate());
+            BigDecimal totalPrice =
+                    totalPrice(confirmation.pricePerNight(), booking.getStartDate(), booking.getEndDate());
+            markConfirmed(bookingId, confirmation.hotelId(), totalPrice);
+            log.info("Recovery confirmed booking {}", bookingId);
+        } catch (RoomNotAvailableException exception) {
+            markCancelled(bookingId, "Room is not available");
+            boolean released = releaseQuietly(
+                    booking.getRoomId(), bookingId, releaseRequestId(booking.getRequestId()));
+            markCompensation(bookingId, released ? CompensationStatus.DONE : CompensationStatus.PENDING);
+            log.info("Recovery cancelled booking {}", bookingId);
+        } catch (RemoteServiceException exception) {
+            log.warn("Recovery postponed for booking {}: {}", bookingId, exception.getMessage());
+        } finally {
+            MDC.remove(TraceHeaders.MDC_BOOKING_ID);
+        }
+    }
+
+    private void retryCompensation(Booking booking) {
+        boolean released = releaseQuietly(
+                booking.getRoomId(), booking.getId(), releaseRequestId(booking.getRequestId()));
+        if (released) {
+            markCompensation(booking.getId(), CompensationStatus.DONE);
+            log.info("Compensation completed for booking {}", booking.getId());
+        } else {
+            log.warn("Compensation still pending for booking {}", booking.getId());
         }
     }
 
@@ -214,6 +272,7 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(BookingStatus.CONFIRMED);
             booking.setHotelId(hotelId);
             booking.setTotalPrice(totalPrice);
+            booking.setCompensationStatus(CompensationStatus.NONE);
             bookingRepository.save(booking);
             bookingEventRepository.save(event(booking, from, BookingStatus.CONFIRMED, "Availability confirmed"));
             return bookingMapper.toResponse(booking);
@@ -255,12 +314,24 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void releaseQuietly(Long roomId, UUID bookingId, String requestId) {
+    private boolean releaseQuietly(Long roomId, UUID bookingId, String requestId) {
         try {
             hotelGateway.release(roomId, bookingId, requestId);
+            return true;
         } catch (RemoteServiceException exception) {
             log.error("Compensation release failed for booking {} and room {}", bookingId, roomId, exception);
+            return false;
         }
+    }
+
+    private void markCompensation(UUID bookingId, CompensationStatus status) {
+        transactionTemplate.executeWithoutResult(tx -> {
+            Booking booking = bookingRepository
+                    .findById(bookingId)
+                    .orElseThrow(() -> new NotFoundException("Booking not found: " + bookingId));
+            booking.setCompensationStatus(status);
+            bookingRepository.save(booking);
+        });
     }
 
     private BookingEvent event(Booking booking, BookingStatus from, BookingStatus to, String reason) {

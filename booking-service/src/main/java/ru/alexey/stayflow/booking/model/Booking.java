@@ -38,7 +38,8 @@ import org.hibernate.annotations.UpdateTimestamp;
         indexes = {
             @Index(name = "idx_bookings_user_status", columnList = "user_id, status"),
             @Index(name = "idx_bookings_room_dates", columnList = "room_id, start_date, end_date"),
-            @Index(name = "idx_bookings_status_created", columnList = "status, created_at")
+            @Index(name = "idx_bookings_status_created", columnList = "status, created_at"),
+            @Index(name = "idx_bookings_compensation", columnList = "compensation_status")
         })
 public class Booking {
 
@@ -80,6 +81,10 @@ public class Booking {
 
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "compensation_status", nullable = false, length = 20)
+    private CompensationStatus compensationStatus = CompensationStatus.NONE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

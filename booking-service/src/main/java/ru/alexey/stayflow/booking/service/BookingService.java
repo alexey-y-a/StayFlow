@@ -16,4 +16,6 @@ public interface BookingService {
     BookingResponse get(String username, UUID bookingId, boolean admin);
 
     void cancel(String username, UUID bookingId, boolean admin);
+
+    void recover();
 }
