@@ -36,7 +36,7 @@ public class HotelDataInitializer implements ApplicationRunner {
                 hotel("Grand Stay", "Москва", "ул. Тверская, 1", "Отель в центре Москвы", "4.8"));
         roomRepository.save(room(grandStay, "101", RoomType.DOUBLE, 2, "6500.00", 1, 4, true, "Стандартный номер"));
         roomRepository.save(room(grandStay, "102", RoomType.DOUBLE, 2, "6800.00", 1, 7, true, "Номер с видом на город"));
-        roomRepository.save(room(grandStay, "201", RoomType.SUITE, 3, "12500.00", 2, 2, true, "Люкс"));
+        roomRepository.save(room(grandStay, "201", RoomType.SUITE, 3, "12500.00", 2, 4, true, "Люкс"));
         roomRepository.save(room(grandStay, "202", RoomType.SINGLE, 1, "4200.00", 2, 0, true, "Одноместный номер"));
 
         Hotel seaBreeze = hotelRepository.save(

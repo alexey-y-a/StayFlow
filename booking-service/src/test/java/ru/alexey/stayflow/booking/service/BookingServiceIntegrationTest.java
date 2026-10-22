@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +35,7 @@ import ru.alexey.stayflow.booking.repository.BookingRepository;
 import ru.alexey.stayflow.booking.repository.UserRepository;
 import ru.alexey.stayflow.common.error.ConflictException;
 import ru.alexey.stayflow.common.error.ForbiddenException;
+import ru.alexey.stayflow.common.error.IdempotencyConflictException;
 import ru.alexey.stayflow.common.error.RemoteServiceException;
 
 @SpringBootTest
@@ -69,6 +71,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Создание брони подтверждает номер и рассчитывает стоимость")
     void createsConfirmedBooking() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenReturn(confirmation(1L, 10L, "5000.00"));
@@ -84,6 +87,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Повтор с тем же Idempotency-Key возвращает существующее бронирование")
     void isIdempotentByRequestId() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenReturn(confirmation(1L, 10L, "5000.00"));
@@ -99,6 +103,21 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Повтор Idempotency-Key с другим телом отклоняется")
+    void rejectsSameRequestIdWithDifferentPayload() {
+        when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
+                .thenReturn(confirmation(1L, 10L, "5000.00"));
+        bookingService.create("user", "duplicate-key", request(1L, 10L, false));
+
+        assertThatThrownBy(() -> bookingService.create("user", "duplicate-key", request(2L, 10L, false)))
+                .isInstanceOf(IdempotencyConflictException.class)
+                .hasMessageContaining("different payload");
+        assertThat(bookingRepository.count()).isEqualTo(1);
+        assertThat(bookingRepository.findAll().getFirst().getRoomId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("Занятый номер: бронь отменяется, клиент получает 409")
     void cancelsBookingWhenRoomIsNotAvailable() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenThrow(new RoomNotAvailableException("busy"));
@@ -112,6 +131,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Автоподбор берёт следующий номер после конфликта")
     void autoSelectTriesNextCandidateAfterConflict() {
         when(hotelGateway.recommend(10L, START, END))
                 .thenReturn(List.of(
@@ -132,6 +152,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("История содержит только брони текущего пользователя")
     void returnsHistoryOnlyForCurrentUser() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenReturn(confirmation(1L, 10L, "5000.00"));
@@ -144,6 +165,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Доступ к чужому бронированию запрещён")
     void deniesAccessToAnotherUsersBooking() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenReturn(confirmation(1L, 10L, "5000.00"));
@@ -154,6 +176,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Отмена подтверждённой брони освобождает слот")
     void cancelsConfirmedBookingAndReleasesRoom() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenReturn(confirmation(1L, 10L, "5000.00"));
@@ -168,6 +191,7 @@ class BookingServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Ошибка Hotel: отмена и компенсация release")
     void cancelsBookingAndReleasesRoomOnRemoteError() {
         when(hotelGateway.confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END)))
                 .thenThrow(new RemoteServiceException("down", new RuntimeException("connection refused")));

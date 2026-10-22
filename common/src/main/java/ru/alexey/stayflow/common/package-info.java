@@ -1,4 +1,4 @@
 /**
- * Shared error model, request tracing and JWT helpers used by StayFlow services.
+ * Общие ошибки, трассировка запросов и JWT-утилиты для сервисов StayFlow.
  */
 package ru.alexey.stayflow.common;
