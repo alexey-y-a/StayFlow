@@ -1,0 +1,11 @@
+.git
+.env
+.idea
+**/target
+**/*.iml
+*.md
+docs
+scripts
+docker-compose.yml
+amplicode.xml
+.DS_Store

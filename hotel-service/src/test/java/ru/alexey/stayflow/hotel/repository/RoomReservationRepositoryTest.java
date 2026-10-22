@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.dao.DataIntegrityViolationException;
 import ru.alexey.stayflow.hotel.model.Hotel;
 import ru.alexey.stayflow.hotel.model.ProcessedRequest;
@@ -17,6 +18,7 @@ import ru.alexey.stayflow.hotel.model.Room;
 import ru.alexey.stayflow.hotel.model.RoomReservation;
 import ru.alexey.stayflow.hotel.model.RoomType;
 
+@ActiveProfiles("test")
 @DataJpaTest
 class RoomReservationRepositoryTest {
 
