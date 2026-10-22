@@ -54,27 +54,28 @@ mvn -pl hotel-service test -Dtest=AvailabilityServiceIntegrationTest#confirmIsId
 
 `GatewayRouteTest` на WireMock проверяет: маршрутизацию логина и истории броней на Booking, отелей и номеров на Hotel, JSON 401 без токена, блокировку `/api/rooms/{id}/confirm-availability` и `release` (404), удаление подделанного `X-Internal-Api-Key`, доступ к админскому пути `/api/users`.
 
-### hotel-service (26 тестов)
+### hotel-service (27 тестов)
 
 | Класс | Проверяет |
 |---|---|
 | `HotelServiceIntegrationTest` | CRUD отелей, запрет удаления отеля с номерами |
 | `HotelControllerTest`, `RoomControllerTest` | валидация, коды ответов, пагинация |
-| `AvailabilityServiceIntegrationTest` | подтверждение доступности, рост `timesBooked`, идемпотентность по `requestId`, отказ при пересечении дат, release и его идемпотентность, сортировка рекомендаций, параллельные вызовы |
+| `AvailabilityServiceIntegrationTest` | подтверждение доступности, рост `timesBooked`, идемпотентность по `requestId`, параллельная повторная доставка `confirm`, отказ при пересечении дат, release и его идемпотентность, сортировка рекомендаций, параллельные подтверждения |
 | `RoomReservationRepositoryTest` | уникальные ограничения, check-констрейнты, поиск пересечений |
 | `SecurityIntegrationTest` | роли, 401/403 в JSON, внутренний ключ |
 
-### booking-service (35 тестов)
+### booking-service (38 тестов)
 
 | Класс | Проверяет |
 |---|---|
-| `BookingServiceIntegrationTest` | создание с подтверждением, идемпотентность по `Idempotency-Key`, отказ при занятом номере, переход к следующему кандидату при `autoSelect`, история только своих, отказ в доступе к чужой брони, отмена с освобождением слота |
+| `BookingServiceIntegrationTest` | создание с подтверждением, идемпотентность по `Idempotency-Key`, конфликт при повторном ключе с другим телом, отказ при занятом номере, переход к следующему кандидату при `autoSelect`, история только своих, отказ в доступе к чужой брони, отмена с освобождением слота |
 | `BookingRecoveryTest` | восстановление зависших `PENDING`, повтор компенсации, сохранение `PENDING` при недоступном Hotel |
 | `HttpHotelGatewayTest` | retry, тайм-аут, circuit breaker на WireMock, разбор ответов Hotel |
 | `BookingControllerTest` | создание, валидация тела, история, отмена, коды ответов |
 | `AuthIntegrationTest` | регистрация, вход, дубль логина, отключённый пользователь |
 | `SecurityIntegrationTest` | 401 в JSON, роли USER/ADMIN, CRUD пользователей |
 | `BookingRepositoryTest` | уникальность `request_id` и `username`, журнал `booking_events` |
+| `BookingConcurrencyIntegrationTest` | параллельные запросы с одним `Idempotency-Key`, параллельные брони одного номера, отсутствие дублей |
 
 ## 4. Сценарии, которые проверяет ментор
 
@@ -87,6 +88,7 @@ mvn -pl hotel-service test -Dtest=AvailabilityServiceIntegrationTest#confirmIsId
 7. Отмена бронирования: слот освобождается, повторная отмена идемпотентна.
 8. Доступ: USER не может в CRUD отелей и пользователей, чужое бронирование даёт 403.
 9. Gateway: прямой вызов внутренних эндпоинтов Hotel через 8080 даёт 404.
+10. Параллельные запросы с одним `Idempotency-Key` дают одно бронирование, параллельные брони одного номера подтверждают только одну.
 
 Автоматическая проверка сквозного сценария:
 

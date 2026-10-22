@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ import ru.alexey.stayflow.booking.service.BookingService;
 import ru.alexey.stayflow.common.error.BadRequestException;
 import ru.alexey.stayflow.common.error.ConflictException;
 import ru.alexey.stayflow.common.error.ForbiddenException;
+import ru.alexey.stayflow.common.error.IdempotencyConflictException;
 import ru.alexey.stayflow.common.error.NotFoundException;
 import ru.alexey.stayflow.common.error.RemoteServiceException;
 import ru.alexey.stayflow.common.web.PageResponse;
@@ -67,6 +69,7 @@ public class BookingServiceImpl implements BookingService {
 
         Optional<Booking> existing = bookingRepository.findByRequestId(requestId);
         if (existing.isPresent()) {
+            verifyIdempotentPayload(existing.get(), request);
             return getInternal(existing.get());
         }
 
@@ -79,10 +82,9 @@ public class BookingServiceImpl implements BookingService {
         try {
             pending = transactionTemplate.execute(status -> createPending(user, candidates.get(0), request, requestId));
         } catch (DataIntegrityViolationException exception) {
-            return bookingRepository
-                    .findByRequestId(requestId)
-                    .map(this::getInternal)
-                    .orElseThrow(() -> exception);
+            Booking duplicate = bookingRepository.findByRequestId(requestId).orElseThrow(() -> exception);
+            verifyIdempotentPayload(duplicate, request);
+            return getInternal(duplicate);
         }
 
         UUID bookingId = pending.getId();
@@ -342,6 +344,19 @@ public class BookingServiceImpl implements BookingService {
         event.setReason(reason);
         event.setTraceId(MDC.get(TraceHeaders.MDC_TRACE_ID));
         return event;
+    }
+
+    private void verifyIdempotentPayload(Booking existing, CreateBookingRequest request) {
+        boolean sameDates = Objects.equals(existing.getStartDate(), request.startDate())
+                && Objects.equals(existing.getEndDate(), request.endDate());
+        boolean sameHotel = request.hotelId() == null
+                || existing.getHotelId() == null
+                || Objects.equals(existing.getHotelId(), request.hotelId());
+        boolean sameRoom = request.autoSelect() || Objects.equals(existing.getRoomId(), request.roomId());
+        if (!sameDates || !sameHotel || !sameRoom) {
+            throw new IdempotencyConflictException(
+                    "Idempotency-Key has already been used with a different payload");
+        }
     }
 
     private void validateRequestId(String requestId) {

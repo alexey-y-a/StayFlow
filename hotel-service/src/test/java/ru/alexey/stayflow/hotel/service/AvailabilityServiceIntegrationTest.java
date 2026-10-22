@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -75,6 +76,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Подтверждение создаёт бронь слота и увеличивает timesBooked")
     void confirmCreatesReservationAndIncrementsTimesBooked() {
         UUID bookingId = UUID.randomUUID();
 
@@ -92,6 +94,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Повтор confirm с тем же requestId не создаёт вторую бронь")
     void confirmIsIdempotentByRequestId() {
         UUID bookingId = UUID.randomUUID();
         ConfirmAvailabilityRequest request = request(bookingId, "same-" + bookingId, START, END);
@@ -107,6 +110,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Пересечение дат отклоняется с кодом 409")
     void overlappingBookingIsRejected() {
         UUID firstBooking = UUID.randomUUID();
         availabilityService.confirmAvailability(
@@ -129,6 +133,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Release освобождает слот и идемпотентен")
     void releaseMarksReservationReleasedAndIsIdempotent() {
         UUID bookingId = UUID.randomUUID();
         availabilityService.confirmAvailability(
@@ -148,6 +153,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Рекомендации сортируют по timesBooked и исключают занятые")
     void recommendSortsByTimesBookedAndExcludesOccupiedRooms() {
         Room cheap = roomRepository.save(room(hotel, "102", 0));
 
@@ -163,6 +169,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Статистика считает загрузку и topRooms")
     void statisticsCountsOccupancy() {
         Room secondRoom = roomRepository.save(room(hotel, "102", 0));
         UUID bookingId = UUID.randomUUID();
@@ -183,6 +190,7 @@ class AvailabilityServiceIntegrationTest {
     }
 
     @Test
+    @DisplayName("Параллельные подтверждения разных броней: проходит только одно")
     void concurrentConfirmationsAllowOnlyOneBooking() throws Exception {
         int attempts = 10;
         ExecutorService executor = Executors.newFixedThreadPool(attempts);
@@ -223,6 +231,38 @@ class AvailabilityServiceIntegrationTest {
             }
 
             assertThat(successes).isEqualTo(1);
+            assertThat(reservationRepository.count()).isEqualTo(1);
+            assertThat(processedRequestRepository.count()).isEqualTo(1);
+            assertThat(roomRepository.findById(room.getId()).orElseThrow().getTimesBooked())
+                    .isEqualTo(4);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    @DisplayName("Параллельная повторная доставка confirm не создаёт вторую бронь")
+    void concurrentDuplicateDeliveryCreatesSingleReservation() throws Exception {
+        UUID bookingId = UUID.randomUUID();
+        int attempts = 6;
+        ExecutorService executor = Executors.newFixedThreadPool(attempts);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<ConfirmAvailabilityResponse>> futures = new ArrayList<>();
+
+        try {
+            for (int index = 0; index < attempts; index++) {
+                futures.add(executor.submit(() -> {
+                    start.await();
+                    return availabilityService.confirmAvailability(
+                            room.getId(), request(bookingId, "duplicate-" + bookingId, START, END));
+                }));
+            }
+
+            start.countDown();
+            for (Future<ConfirmAvailabilityResponse> future : futures) {
+                assertThat(future.get(15, TimeUnit.SECONDS).available()).isTrue();
+            }
+
             assertThat(reservationRepository.count()).isEqualTo(1);
             assertThat(processedRequestRepository.count()).isEqualTo(1);
             assertThat(roomRepository.findById(room.getId()).orElseThrow().getTimesBooked())
