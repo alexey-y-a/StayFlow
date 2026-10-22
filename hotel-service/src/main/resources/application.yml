@@ -33,11 +33,11 @@ stayflow:
     enabled: true
   security:
     jwt:
-      secret: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+      secret: ${JWT_SECRET}
       issuer: https://stayflow.example
       ttl: 1h
       issue: false
-    internal-api-key: ${INTERNAL_API_KEY:dev-internal-key}
+    internal-api-key: ${INTERNAL_API_KEY}
 
 management:
   endpoints:

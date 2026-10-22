@@ -3,6 +3,11 @@ eureka:
     enabled: false
 
 stayflow:
+  security:
+    jwt:
+      secret: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      issuer: https://stayflow.example
+    internal-api-key: test-internal-key
   booking:
     recovery:
       enabled: false

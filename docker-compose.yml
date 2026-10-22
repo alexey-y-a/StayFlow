@@ -1,0 +1,106 @@
+name: stayflow
+
+services:
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    image: stayflow/eureka-server:0.1.0
+    ports:
+      - "8761:8761"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - stayflow
+
+  hotel-service:
+    build:
+      context: .
+      dockerfile: hotel-service/Dockerfile
+    image: stayflow/hotel-service:0.1.0
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - stayflow
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: booking-service/Dockerfile
+    image: stayflow/booking-service:0.1.0
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      HOTEL_SERVICE_URL: http://hotel-service
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      hotel-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - stayflow
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    image: stayflow/api-gateway:0.1.0
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      hotel-service:
+        condition: service_healthy
+      booking-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - stayflow
+
+networks:
+  stayflow:
+    driver: bridge

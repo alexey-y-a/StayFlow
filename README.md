@@ -26,6 +26,51 @@ StayFlow - микросервисная система бронирования 
 - Maven
 - JUnit 5, MockMvc, WireMock
 
+## Переменные окружения
+
+Секреты в репозитории не хранятся. Значения задаются в файле `.env` в корне проекта; файл добавлен в `.gitignore`, в git попадает только шаблон `.env.example`.
+
+```bash
+cp .env.example .env
+```
+
+| Переменная | Назначение |
+|---|---|
+| `JWT_SECRET` | Base64-ключ HS256 для подписи и проверки токенов (не короче 32 байт в декодированном виде) |
+| `INTERNAL_API_KEY` | Ключ внутренних эндпоинтов Hotel Service (`X-Internal-Api-Key`) |
+
+Генерация значений:
+
+```bash
+openssl rand -base64 32   # JWT_SECRET
+openssl rand -hex 32      # INTERNAL_API_KEY
+```
+
+Одно значение `JWT_SECRET` должно использоваться всеми сервисами: Booking выпускает токены, Gateway и Hotel их проверяют.
+
+Тесты не зависят от `.env`: значения заданы в `src/test/resources/application-test.yml`.
+
+## Запуск
+
+Все сервисы в Docker:
+
+```bash
+docker compose up --build
+```
+
+Compose читает `.env` из корня проекта и передаёт переменные контейнерам.
+
+Локальный запуск одного сервиса без Docker (переменные окружения подхватываются из `.env`):
+
+```bash
+./scripts/run-local.sh eureka-server
+./scripts/run-local.sh hotel-service
+./scripts/run-local.sh booking-service
+./scripts/run-local.sh api-gateway
+```
+
+Порядок запуска: Eureka, затем Hotel и Booking, затем Gateway. Каждый сервис запускается в отдельном терминале.
+
 ## Статус
 
-Проект в разработке. Инструкции по запуску, описание API и архитектурные решения будут добавлены по мере реализации.
+Проект в разработке.
