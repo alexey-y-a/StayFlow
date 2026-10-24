@@ -24,10 +24,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(
         name = "users",
-        uniqueConstraints =
-                @UniqueConstraint(
-                        name = "uk_users_username",
-                        columnNames = "username"),
+        uniqueConstraints = @UniqueConstraint(name = "uk_users_username", columnNames = "username"),
         indexes = @Index(name = "idx_users_role", columnList = "role"))
 public class User {
 

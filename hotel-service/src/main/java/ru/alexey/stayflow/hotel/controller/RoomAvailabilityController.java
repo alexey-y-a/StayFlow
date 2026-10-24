@@ -43,6 +43,15 @@ public class RoomAvailabilityController {
         return availabilityService.releaseRoom(id, request);
     }
 
+    @GetMapping("/internal/recommend")
+    @Operation(summary = "Recommend available rooms for internal service calls")
+    public List<RoomResponse> recommendInternal(
+            @RequestParam(required = false) Long hotelId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return availabilityService.recommend(hotelId, startDate, endDate);
+    }
+
     @GetMapping("/recommend")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Recommend available rooms sorted by times booked")

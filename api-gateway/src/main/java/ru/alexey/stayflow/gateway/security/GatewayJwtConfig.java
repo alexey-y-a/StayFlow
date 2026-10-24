@@ -35,7 +35,8 @@ public class GatewayJwtConfig {
         http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .authorizeExchange(exchanges -> exchanges.pathMatchers("/actuator/health", "/actuator/info")
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers("/actuator/health", "/actuator/info")
                         .permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
                         .permitAll()
@@ -45,9 +46,10 @@ public class GatewayJwtConfig {
                         .authenticated()
                         .anyExchange()
                         .permitAll())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                                .authenticationEntryPoint(authenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler));

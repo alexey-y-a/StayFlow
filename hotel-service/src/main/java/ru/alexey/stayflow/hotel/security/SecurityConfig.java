@@ -37,53 +37,39 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http, InternalApiKeyFilter internalApiKeyFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, InternalApiKeyFilter internalApiKeyFilter)
+            throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(internalApiKeyFilter, BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/health", "/actuator/info")
                         .permitAll()
-                        .requestMatchers("/api/rooms/*/confirm-availability", "/api/rooms/*/release")
+                        .requestMatchers(
+                                "/api/rooms/*/confirm-availability",
+                                "/api/rooms/*/release",
+                                "/api/rooms/internal/recommend")
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
                         .requestMatchers("/h2-console/**")
                         .permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/hotels",
-                                "/api/hotels/**",
-                                "/api/rooms",
-                                "/api/rooms/**")
+                        .requestMatchers(HttpMethod.GET, "/api/hotels", "/api/hotels/**", "/api/rooms", "/api/rooms/**")
                         .hasAnyRole("USER", "ADMIN")
                         .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/hotels",
-                                "/api/hotels/**",
-                                "/api/rooms",
-                                "/api/rooms/**")
+                                HttpMethod.POST, "/api/hotels", "/api/hotels/**", "/api/rooms", "/api/rooms/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/hotels", "/api/hotels/**", "/api/rooms", "/api/rooms/**")
                         .hasRole("ADMIN")
                         .requestMatchers(
-                                HttpMethod.PUT,
-                                "/api/hotels",
-                                "/api/hotels/**",
-                                "/api/rooms",
-                                "/api/rooms/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/api/hotels",
-                                "/api/hotels/**",
-                                "/api/rooms",
-                                "/api/rooms/**")
+                                HttpMethod.DELETE, "/api/hotels", "/api/hotels/**", "/api/rooms", "/api/rooms/**")
                         .hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                                .authenticationEntryPoint(authenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))

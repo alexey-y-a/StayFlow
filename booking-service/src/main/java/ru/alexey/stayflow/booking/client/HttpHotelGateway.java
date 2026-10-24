@@ -86,7 +86,7 @@ public class HttpHotelGateway implements HotelGateway {
     }
 
     private List<HotelRoomInfo> doRecommend(Long hotelId, LocalDate startDate, LocalDate endDate) {
-        UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/api/rooms/recommend");
+        UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/api/rooms/internal/recommend");
         if (hotelId != null) {
             uri.queryParam("hotelId", hotelId);
         }
@@ -107,9 +107,7 @@ public class HttpHotelGateway implements HotelGateway {
             throw new HotelClientException("Hotel recommend rejected: " + exception.getStatusCode(), exception);
         } catch (HttpServerErrorException exception) {
             throw new RemoteServiceException(
-                    ErrorCode.REMOTE_SERVICE_ERROR,
-                    "Hotel recommend failed: " + exception.getStatusCode(),
-                    exception);
+                    ErrorCode.REMOTE_SERVICE_ERROR, "Hotel recommend failed: " + exception.getStatusCode(), exception);
         } catch (ResourceAccessException exception) {
             throw new RemoteServiceException(
                     ErrorCode.REMOTE_SERVICE_UNAVAILABLE, "Hotel service is unavailable", exception);
@@ -132,9 +130,7 @@ public class HttpHotelGateway implements HotelGateway {
             throw new HotelClientException("Hotel confirm rejected: " + exception.getStatusCode(), exception);
         } catch (HttpServerErrorException exception) {
             throw new RemoteServiceException(
-                    ErrorCode.REMOTE_SERVICE_ERROR,
-                    "Hotel confirm failed: " + exception.getStatusCode(),
-                    exception);
+                    ErrorCode.REMOTE_SERVICE_ERROR, "Hotel confirm failed: " + exception.getStatusCode(), exception);
         } catch (ResourceAccessException exception) {
             throw new RemoteServiceException(
                     ErrorCode.REMOTE_SERVICE_UNAVAILABLE, "Hotel service is unavailable", exception);
@@ -154,9 +150,7 @@ public class HttpHotelGateway implements HotelGateway {
             throw new HotelClientException("Hotel release rejected: " + exception.getStatusCode(), exception);
         } catch (HttpServerErrorException exception) {
             throw new RemoteServiceException(
-                    ErrorCode.REMOTE_SERVICE_ERROR,
-                    "Hotel release failed: " + exception.getStatusCode(),
-                    exception);
+                    ErrorCode.REMOTE_SERVICE_ERROR, "Hotel release failed: " + exception.getStatusCode(), exception);
         } catch (ResourceAccessException exception) {
             throw new RemoteServiceException(
                     ErrorCode.REMOTE_SERVICE_UNAVAILABLE, "Hotel service is unavailable", exception);
@@ -164,30 +158,24 @@ public class HttpHotelGateway implements HotelGateway {
     }
 
     private <T> T execute(Supplier<T> supplier) {
-        Supplier<T> decorated = Retry.decorateSupplier(
-                retry,
-                CircuitBreaker.decorateSupplier(
-                        circuitBreaker,
-                        () -> {
-                            CompletableFuture<T> future = CompletableFuture.supplyAsync(supplier, executor);
-                            try {
-                                return timeLimiter.executeFutureSupplier(() -> future);
-                            } catch (TimeoutException exception) {
-                                future.cancel(true);
-                                throw new RemoteServiceException(
-                                        ErrorCode.REMOTE_TIMEOUT, "Hotel service timeout", exception);
-                            } catch (Exception exception) {
-                                if (exception instanceof RuntimeException runtimeException) {
-                                    throw runtimeException;
-                                }
-                                Throwable cause = exception.getCause() == null ? exception : exception.getCause();
-                                if (cause instanceof RuntimeException runtimeException) {
-                                    throw runtimeException;
-                                }
-                                throw new RemoteServiceException(
-                                        ErrorCode.REMOTE_SERVICE_ERROR, "Hotel service call failed", cause);
-                            }
-                        }));
+        Supplier<T> decorated = Retry.decorateSupplier(retry, CircuitBreaker.decorateSupplier(circuitBreaker, () -> {
+            CompletableFuture<T> future = CompletableFuture.supplyAsync(supplier, executor);
+            try {
+                return timeLimiter.executeFutureSupplier(() -> future);
+            } catch (TimeoutException exception) {
+                future.cancel(true);
+                throw new RemoteServiceException(ErrorCode.REMOTE_TIMEOUT, "Hotel service timeout", exception);
+            } catch (Exception exception) {
+                if (exception instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
+                }
+                Throwable cause = exception.getCause() == null ? exception : exception.getCause();
+                if (cause instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
+                }
+                throw new RemoteServiceException(ErrorCode.REMOTE_SERVICE_ERROR, "Hotel service call failed", cause);
+            }
+        }));
         return decorated.get();
     }
 }

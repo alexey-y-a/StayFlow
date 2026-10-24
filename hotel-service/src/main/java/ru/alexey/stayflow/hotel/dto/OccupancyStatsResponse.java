@@ -12,5 +12,4 @@ public record OccupancyStatsResponse(
         double occupancyRate,
         long totalTimesBooked,
         double averageTimesBooked,
-        List<RoomLoadResponse> topRooms) {
-}
+        List<RoomLoadResponse> topRooms) {}

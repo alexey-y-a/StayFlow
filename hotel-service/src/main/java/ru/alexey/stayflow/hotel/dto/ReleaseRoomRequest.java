@@ -6,6 +6,4 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record ReleaseRoomRequest(
-        @NotNull UUID bookingId,
-        @NotBlank @Size(max = 100) String requestId) {
-}
+        @NotNull UUID bookingId, @NotBlank @Size(max = 100) String requestId) {}

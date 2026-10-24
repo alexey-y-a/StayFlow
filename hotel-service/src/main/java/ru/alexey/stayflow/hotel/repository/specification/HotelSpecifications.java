@@ -10,15 +10,15 @@ import ru.alexey.stayflow.hotel.model.Hotel;
 
 public final class HotelSpecifications {
 
-    private HotelSpecifications() {
-    }
+    private HotelSpecifications() {}
 
     public static Specification<Hotel> byFilter(HotelFilter filter) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (filter != null) {
                 if (StringUtils.hasText(filter.getCity())) {
-                    predicates.add(cb.equal(cb.lower(root.get("city")), filter.getCity().trim().toLowerCase()));
+                    predicates.add(cb.equal(
+                            cb.lower(root.get("city")), filter.getCity().trim().toLowerCase()));
                 }
                 if (StringUtils.hasText(filter.getName())) {
                     predicates.add(cb.like(

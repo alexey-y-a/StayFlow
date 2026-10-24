@@ -58,15 +58,13 @@ public class AuthServiceImpl implements AuthService {
     private AuthResponse response(User user) {
         String result = createToken(user);
         return new AuthResponse(
-                result,
-                "Bearer",
-                jwtProperties.ttl().toSeconds(),
-                user.getId(),
-                user.getUsername(),
-                user.getRole());
+                result, "Bearer", jwtProperties.ttl().toSeconds(), user.getId(), user.getUsername(), user.getRole());
     }
 
     private String createToken(User user) {
-        return jwtTokenService.issue(user.getId(), user.getUsername(), List.of("ROLE_" + user.getRole().name()));
+        return jwtTokenService.issue(
+                user.getId(),
+                user.getUsername(),
+                List.of("ROLE_" + user.getRole().name()));
     }
 }

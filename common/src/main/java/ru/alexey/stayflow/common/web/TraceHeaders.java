@@ -10,6 +10,5 @@ public final class TraceHeaders {
     public static final String MDC_BOOKING_ID = "bookingId";
     public static final String MDC_USER_ID = "userId";
 
-    private TraceHeaders() {
-    }
+    private TraceHeaders() {}
 }

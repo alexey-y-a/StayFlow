@@ -30,12 +30,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(
         name = "rooms",
         uniqueConstraints =
-        @UniqueConstraint(
-                name = "uk_rooms_hotel_number",
-                columnNames = {"hotel_id", "number"}),
+                @UniqueConstraint(
+                        name = "uk_rooms_hotel_number",
+                        columnNames = {"hotel_id", "number"}),
         indexes = {
-                @Index(name = "idx_rooms_hotel", columnList = "hotel_id"),
-                @Index(name = "idx_rooms_available_times", columnList = "available, times_booked")
+            @Index(name = "idx_rooms_hotel", columnList = "hotel_id"),
+            @Index(name = "idx_rooms_available_times", columnList = "available, times_booked")
         })
 public class Room {
 
@@ -44,10 +44,7 @@ public class Room {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "hotel_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_rooms_hotel"))
+    @JoinColumn(name = "hotel_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rooms_hotel"))
     private Hotel hotel;
 
     @Column(nullable = false, length = 20)

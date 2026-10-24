@@ -11,5 +11,4 @@ public record HotelCreateRequest(
         @NotBlank @Size(max = 80) String city,
         @NotBlank @Size(max = 255) String address,
         @Size(max = 1000) String description,
-        @DecimalMin("0.0") @DecimalMax("5.0") BigDecimal rating) {
-}
+        @DecimalMin("0.0") @DecimalMax("5.0") BigDecimal rating) {}

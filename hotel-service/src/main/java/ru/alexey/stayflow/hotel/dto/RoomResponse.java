@@ -17,5 +17,4 @@ public record RoomResponse(
         long timesBooked,
         String description,
         Instant createdAt,
-        Instant updatedAt) {
-}
+        Instant updatedAt) {}

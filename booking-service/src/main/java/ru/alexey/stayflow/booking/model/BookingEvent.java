@@ -25,9 +25,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Table(
         name = "booking_events",
-        indexes = @Index(
-                name = "idx_booking_events_booking_created",
-                columnList = "booking_id, created_at"))
+        indexes = @Index(name = "idx_booking_events_booking_created", columnList = "booking_id, created_at"))
 public class BookingEvent {
 
     @Id
@@ -35,10 +33,7 @@ public class BookingEvent {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "booking_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_booking_events_booking"))
+    @JoinColumn(name = "booking_id", nullable = false, foreignKey = @ForeignKey(name = "fk_booking_events_booking"))
     private Booking booking;
 
     @Enumerated(EnumType.STRING)

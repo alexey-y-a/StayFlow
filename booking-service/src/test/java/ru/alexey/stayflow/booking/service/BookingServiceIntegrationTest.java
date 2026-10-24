@@ -98,8 +98,7 @@ class BookingServiceIntegrationTest {
         assertThat(second.id()).isEqualTo(first.id());
         assertThat(bookingRepository.count()).isEqualTo(1);
         assertThat(bookingEventRepository.count()).isEqualTo(2);
-        verify(hotelGateway, times(1))
-                .confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END));
+        verify(hotelGateway, times(1)).confirmAvailability(eq(1L), any(UUID.class), anyString(), eq(START), eq(END));
     }
 
     @Test
@@ -147,8 +146,7 @@ class BookingServiceIntegrationTest {
         assertThat(response.roomId()).isEqualTo(2L);
         assertThat(response.status()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(response.totalPrice()).isEqualByComparingTo("24000.00");
-        verify(hotelGateway, times(2))
-                .confirmAvailability(any(), any(UUID.class), anyString(), eq(START), eq(END));
+        verify(hotelGateway, times(2)).confirmAvailability(any(), any(UUID.class), anyString(), eq(START), eq(END));
     }
 
     @Test
@@ -160,7 +158,9 @@ class BookingServiceIntegrationTest {
 
         assertThat(bookingService.history("user", null, PageRequest.of(0, 10)).content())
                 .hasSize(1);
-        assertThat(bookingService.history("user", BookingStatus.CONFIRMED, PageRequest.of(0, 10)).content())
+        assertThat(bookingService
+                        .history("user", BookingStatus.CONFIRMED, PageRequest.of(0, 10))
+                        .content())
                 .hasSize(1);
     }
 
@@ -208,8 +208,7 @@ class BookingServiceIntegrationTest {
     }
 
     private HotelConfirmResponse confirmation(Long roomId, Long hotelId, String price) {
-        return new HotelConfirmResponse(
-                roomId, null, true, "101", hotelId, "Hotel", new BigDecimal(price), START, END);
+        return new HotelConfirmResponse(roomId, null, true, "101", hotelId, "Hotel", new BigDecimal(price), START, END);
     }
 
     private User user(String username) {

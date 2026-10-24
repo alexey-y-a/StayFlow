@@ -51,7 +51,9 @@ public class RoomServiceImpl implements RoomService {
         Hotel hotel = hotelRepository
                 .findById(request.hotelId())
                 .orElseThrow(() -> new NotFoundException("Hotel not found: " + request.hotelId()));
-        if (roomRepository.findByHotelIdAndNumber(request.hotelId(), request.number()).isPresent()) {
+        if (roomRepository
+                .findByHotelIdAndNumber(request.hotelId(), request.number())
+                .isPresent()) {
             throw new ConflictException("Room number already exists in hotel: " + request.number());
         }
         Room room = roomMapper.toEntity(request);
@@ -67,7 +69,9 @@ public class RoomServiceImpl implements RoomService {
         Room room = findRoom(id);
         Long hotelId = room.getHotel().getId();
         if (!room.getNumber().equals(request.number())
-                && roomRepository.findByHotelIdAndNumber(hotelId, request.number()).isPresent()) {
+                && roomRepository
+                        .findByHotelIdAndNumber(hotelId, request.number())
+                        .isPresent()) {
             throw new ConflictException("Room number already exists in hotel: " + request.number());
         }
         roomMapper.update(request, room);

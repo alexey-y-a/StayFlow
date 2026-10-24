@@ -20,10 +20,8 @@ public class GatewayErrorWriter {
         this.objectMapper = objectMapper;
     }
 
-    public Mono<Void> write(
-            ServerWebExchange exchange, HttpStatus status, String code, String message) {
-        String traceId = (String) exchange.getAttributes()
-                .getOrDefault(GatewayHeaders.TRACE_ID_ATTRIBUTE, "unknown");
+    public Mono<Void> write(ServerWebExchange exchange, HttpStatus status, String code, String message) {
+        String traceId = (String) exchange.getAttributes().getOrDefault(GatewayHeaders.TRACE_ID_ATTRIBUTE, "unknown");
         GatewayErrorResponse body = new GatewayErrorResponse(
                 Instant.now(),
                 status.value(),

@@ -119,11 +119,7 @@ class AvailabilityServiceIntegrationTest {
         UUID secondBooking = UUID.randomUUID();
         assertThatThrownBy(() -> availabilityService.confirmAvailability(
                         room.getId(),
-                        request(
-                                secondBooking,
-                                "second-" + secondBooking,
-                                START.plusDays(2),
-                                END.plusDays(2))))
+                        request(secondBooking, "second-" + secondBooking, START.plusDays(2), END.plusDays(2))))
                 .isInstanceOf(ConflictException.class)
                 .hasMessageContaining("not available");
 
@@ -136,8 +132,7 @@ class AvailabilityServiceIntegrationTest {
     @DisplayName("Release освобождает слот и идемпотентен")
     void releaseMarksReservationReleasedAndIsIdempotent() {
         UUID bookingId = UUID.randomUUID();
-        availabilityService.confirmAvailability(
-                room.getId(), request(bookingId, "confirm-" + bookingId, START, END));
+        availabilityService.confirmAvailability(room.getId(), request(bookingId, "confirm-" + bookingId, START, END));
         ReleaseRoomRequest release = new ReleaseRoomRequest(bookingId, "release-" + bookingId);
 
         availabilityService.releaseRoom(room.getId(), release);
@@ -173,8 +168,7 @@ class AvailabilityServiceIntegrationTest {
     void statisticsCountsOccupancy() {
         Room secondRoom = roomRepository.save(room(hotel, "102", 0));
         UUID bookingId = UUID.randomUUID();
-        availabilityService.confirmAvailability(
-                room.getId(), request(bookingId, "stats-" + bookingId, START, END));
+        availabilityService.confirmAvailability(room.getId(), request(bookingId, "stats-" + bookingId, START, END));
 
         OccupancyStatsResponse stats = occupancyService.getHotelStatistics(hotel.getId());
 
@@ -185,7 +179,8 @@ class AvailabilityServiceIntegrationTest {
         assertThat(stats.occupancyRate()).isEqualTo(50.0);
         assertThat(stats.totalTimesBooked()).isEqualTo(4);
         assertThat(stats.averageTimesBooked()).isEqualTo(2.0);
-        assertThat(stats.topRooms()).extracting(room -> room.roomId())
+        assertThat(stats.topRooms())
+                .extracting(room -> room.roomId())
                 .containsExactly(room.getId(), secondRoom.getId());
     }
 
@@ -206,12 +201,7 @@ class AvailabilityServiceIntegrationTest {
                     try {
                         UUID bookingId = UUID.randomUUID();
                         availabilityService.confirmAvailability(
-                                room.getId(),
-                                request(
-                                        bookingId,
-                                        "concurrent-" + bookingId,
-                                        START,
-                                        END));
+                                room.getId(), request(bookingId, "concurrent-" + bookingId, START, END));
                         return true;
                     } catch (ConflictException exception) {
                         return false;

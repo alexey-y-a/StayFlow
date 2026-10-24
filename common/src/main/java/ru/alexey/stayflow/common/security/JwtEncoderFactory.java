@@ -9,8 +9,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 public final class JwtEncoderFactory {
 
-    private JwtEncoderFactory() {
-    }
+    private JwtEncoderFactory() {}
 
     public static JwtEncoder create(JwtProperties properties) {
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey(properties)));

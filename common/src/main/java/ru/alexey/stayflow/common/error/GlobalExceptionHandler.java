@@ -49,8 +49,7 @@ public class GlobalExceptionHandler {
             ConstraintViolationException exception, HttpServletRequest request) {
         List<FieldErrorDTO> details = exception.getConstraintViolations().stream()
                 .map(violation -> new FieldErrorDTO(
-                        violation.getPropertyPath().toString(),
-                        messageOrDefault(violation.getMessage())))
+                        violation.getPropertyPath().toString(), messageOrDefault(violation.getMessage())))
                 .toList();
         return response(ErrorCode.VALIDATION_ERROR, "Validation failed", request, details);
     }
@@ -67,8 +66,7 @@ public class GlobalExceptionHandler {
         String expectedType = exception.getRequiredType() == null
                 ? "unknown"
                 : exception.getRequiredType().getSimpleName();
-        List<FieldErrorDTO> details =
-                List.of(new FieldErrorDTO(exception.getName(), "Expected type: " + expectedType));
+        List<FieldErrorDTO> details = List.of(new FieldErrorDTO(exception.getName(), "Expected type: " + expectedType));
         return response(ErrorCode.BAD_REQUEST, "Invalid request parameter", request, details);
     }
 
@@ -101,8 +99,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorDTO> handleAccessDenied(
-            AccessDeniedException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleAccessDenied(AccessDeniedException exception, HttpServletRequest request) {
         return response(ErrorCode.FORBIDDEN, "Access denied", request, List.of());
     }
 

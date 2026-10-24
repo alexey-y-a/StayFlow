@@ -31,6 +31,7 @@ services:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      STAYFLOW_OPENAPI_SERVER_URL: http://localhost:8081
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     depends_on:
       eureka-server:
@@ -57,6 +58,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       HOTEL_SERVICE_URL: http://hotel-service
+      STAYFLOW_OPENAPI_SERVER_URL: http://localhost:8082
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     depends_on:
       eureka-server:
@@ -83,6 +85,8 @@ services:
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET}
+      SPRINGDOC_API_DOCS_ENABLED: "false"
+      SPRINGDOC_SWAGGER_UI_ENABLED: "false"
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     depends_on:
       eureka-server:

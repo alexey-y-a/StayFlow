@@ -16,5 +16,4 @@ public record RoomUpdateRequest(
         @NotNull @DecimalMin("0.01") BigDecimal pricePerNight,
         @NotNull @Min(0) Integer floor,
         @NotNull Boolean available,
-        @Size(max = 500) String description) {
-}
+        @Size(max = 500) String description) {}

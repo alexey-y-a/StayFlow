@@ -78,12 +78,6 @@ public class HotelClientConfig {
             TimeLimiter hotelTimeLimiter,
             ExecutorService hotelCallExecutor) {
         return new HttpHotelGateway(
-                builder,
-                baseUrl,
-                internalApiKey,
-                hotelRetry,
-                hotelCircuitBreaker,
-                hotelTimeLimiter,
-                hotelCallExecutor);
+                builder, baseUrl, internalApiKey, hotelRetry, hotelCircuitBreaker, hotelTimeLimiter, hotelCallExecutor);
     }
 }

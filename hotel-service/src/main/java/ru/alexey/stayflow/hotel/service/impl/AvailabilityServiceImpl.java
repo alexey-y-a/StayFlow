@@ -106,9 +106,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             return replayRelease(existing.get(), roomId, request);
         }
 
-        roomRepository
-                .findByIdForUpdate(roomId)
-                .orElseThrow(() -> new NotFoundException("Room not found: " + roomId));
+        roomRepository.findByIdForUpdate(roomId).orElseThrow(() -> new NotFoundException("Room not found: " + roomId));
 
         Optional<ProcessedRequest> afterLock = processedRequestRepository.findByRequestId(request.requestId());
         if (afterLock.isPresent()) {
@@ -147,8 +145,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         } else {
             rooms = hotelId == null
                     ? roomRepository.findRecommended(ReservationStatus.CONFIRMED, startDate, endDate)
-                    : roomRepository.findRecommendedByHotelId(
-                            hotelId, ReservationStatus.CONFIRMED, startDate, endDate);
+                    : roomRepository.findRecommendedByHotelId(hotelId, ReservationStatus.CONFIRMED, startDate, endDate);
         }
         return rooms.stream().map(roomMapper::toResponse).toList();
     }
@@ -172,8 +169,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return toConfirmResponse(reservation);
     }
 
-    private ReleaseRoomResponse replayRelease(
-            ProcessedRequest processed, Long roomId, ReleaseRoomRequest request) {
+    private ReleaseRoomResponse replayRelease(ProcessedRequest processed, Long roomId, ReleaseRoomRequest request) {
         boolean samePayload = RELEASE_OPERATION.equals(processed.getOperation())
                 && processed.getRoomId().equals(roomId)
                 && processed.getBookingId().equals(request.bookingId());

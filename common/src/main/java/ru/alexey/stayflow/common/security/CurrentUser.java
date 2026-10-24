@@ -22,9 +22,8 @@ public record CurrentUser(Long id, String username, Set<String> roles) {
                     extractUserId(jwt),
                     Optional.ofNullable(jwt.getClaimAsString(JwtClaims.USERNAME))
                             .orElse(jwt.getSubject()),
-                    new LinkedHashSet<>(
-                            Optional.ofNullable(jwt.getClaimAsStringList(JwtClaims.ROLES))
-                                    .orElse(List.of())));
+                    new LinkedHashSet<>(Optional.ofNullable(jwt.getClaimAsStringList(JwtClaims.ROLES))
+                            .orElse(List.of())));
         }
         throw new IllegalStateException("Current user is not available");
     }

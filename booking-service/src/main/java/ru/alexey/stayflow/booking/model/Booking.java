@@ -31,10 +31,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Check(constraints = "start_date < end_date")
 @Table(
         name = "bookings",
-        uniqueConstraints =
-                @UniqueConstraint(
-                        name = "uk_bookings_request",
-                        columnNames = "request_id"),
+        uniqueConstraints = @UniqueConstraint(name = "uk_bookings_request", columnNames = "request_id"),
         indexes = {
             @Index(name = "idx_bookings_user_status", columnList = "user_id, status"),
             @Index(name = "idx_bookings_room_dates", columnList = "room_id, start_date, end_date"),
@@ -48,10 +45,7 @@ public class Booking {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_bookings_user"))
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_bookings_user"))
     private User user;
 
     @Column(name = "room_id", nullable = false)

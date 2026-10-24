@@ -9,8 +9,7 @@ import ru.alexey.stayflow.hotel.model.Room;
 
 public final class RoomSpecifications {
 
-    private RoomSpecifications() {
-    }
+    private RoomSpecifications() {}
 
     public static Specification<Room> byFilter(RoomFilter filter) {
         return (root, query, cb) -> {

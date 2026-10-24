@@ -10,5 +10,4 @@ public record ConfirmAvailabilityRequest(
         @NotNull UUID bookingId,
         @NotBlank @Size(max = 100) String requestId,
         @NotNull LocalDate startDate,
-        @NotNull LocalDate endDate) {
-}
+        @NotNull LocalDate endDate) {}

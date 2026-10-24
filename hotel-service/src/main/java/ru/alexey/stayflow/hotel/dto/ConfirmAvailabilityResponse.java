@@ -13,5 +13,4 @@ public record ConfirmAvailabilityResponse(
         String hotelName,
         BigDecimal pricePerNight,
         LocalDate startDate,
-        LocalDate endDate) {
-}
+        LocalDate endDate) {}

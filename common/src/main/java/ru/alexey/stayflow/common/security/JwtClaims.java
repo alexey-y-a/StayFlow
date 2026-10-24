@@ -6,6 +6,5 @@ public final class JwtClaims {
     public static final String USERNAME = "username";
     public static final String ROLES = "roles";
 
-    private JwtClaims() {
-    }
+    private JwtClaims() {}
 }

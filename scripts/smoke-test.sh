@@ -17,13 +17,33 @@ done
 curl -fsS "$BASE_URL/actuator/health" >/dev/null
 
 echo "Registering $USERNAME ..."
-REGISTER=$(curl -fsS -X POST "$BASE_URL/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
+REGISTER=""
+for _ in $(seq 1 30); do
+  if REGISTER=$(curl -fsS -X POST "$BASE_URL/api/auth/register" \
+    -H "Content-Type: application/json" \
+    -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" 2>/dev/null); then
+    break
+  fi
+  sleep 2
+done
+if [ -z "$REGISTER" ]; then
+  echo "error: registration failed, check that all services are UP in Eureka" >&2
+  exit 1
+fi
 TOKEN=$(printf '%s' "$REGISTER" | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')
 
 echo "Reading hotels and rooms ..."
-HOTELS=$(curl -fsS "$BASE_URL/api/hotels" -H "Authorization: Bearer $TOKEN")
+HOTELS=""
+for _ in $(seq 1 30); do
+  if HOTELS=$(curl -fsS "$BASE_URL/api/hotels" -H "Authorization: Bearer $TOKEN" 2>/dev/null); then
+    break
+  fi
+  sleep 2
+done
+if [ -z "$HOTELS" ]; then
+  echo "error: Gateway cannot reach hotel-service yet" >&2
+  exit 1
+fi
 HOTEL_ID=$(printf '%s' "$HOTELS" | python3 -c 'import sys,json; print(json.load(sys.stdin)["content"][0]["id"])')
 ROOMS=$(curl -fsS "$BASE_URL/api/rooms?hotelId=$HOTEL_ID" -H "Authorization: Bearer $TOKEN")
 ROOM_ID=$(printf '%s' "$ROOMS" | python3 -c 'import sys,json; print(json.load(sys.stdin)["content"][0]["id"])')

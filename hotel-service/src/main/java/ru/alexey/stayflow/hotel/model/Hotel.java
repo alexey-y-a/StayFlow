@@ -23,8 +23,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(
         name = "hotels",
         indexes = {
-                @Index(name = "idx_hotels_city", columnList = "city"),
-                @Index(name = "idx_hotels_name", columnList = "name")
+            @Index(name = "idx_hotels_city", columnList = "city"),
+            @Index(name = "idx_hotels_name", columnList = "name")
         })
 public class Hotel {
 

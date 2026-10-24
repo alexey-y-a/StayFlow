@@ -7,6 +7,5 @@ public final class GatewayHeaders {
     public static final String INTERNAL_API_KEY = "X-Internal-Api-Key";
     public static final String TRACE_ID_ATTRIBUTE = "traceId";
 
-    private GatewayHeaders() {
-    }
+    private GatewayHeaders() {}
 }

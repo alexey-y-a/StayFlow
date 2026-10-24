@@ -7,11 +7,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "stayflow.security.jwt")
-public record JwtProperties(
-        @NotBlank String secret,
-        String issuer,
-        Duration ttl,
-        boolean issue) {
+public record JwtProperties(@NotBlank String secret, String issuer, Duration ttl, boolean issue) {
 
     public JwtProperties {
         if (issuer == null || issuer.isBlank()) {

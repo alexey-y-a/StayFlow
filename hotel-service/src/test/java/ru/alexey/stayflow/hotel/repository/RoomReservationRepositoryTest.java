@@ -9,8 +9,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 import ru.alexey.stayflow.hotel.model.Hotel;
 import ru.alexey.stayflow.hotel.model.ProcessedRequest;
 import ru.alexey.stayflow.hotel.model.ReservationStatus;
@@ -37,21 +37,17 @@ class RoomReservationRepositoryTest {
     @Test
     void detectsOverlappingReservations() {
         Room room = persistRoom("101");
-        reservationRepository.saveAndFlush(reservation(
-                room,
-                UUID.randomUUID(),
-                "req-1",
-                LocalDate.of(2026, 11, 1),
-                LocalDate.of(2026, 11, 5)));
+        reservationRepository.saveAndFlush(
+                reservation(room, UUID.randomUUID(), "req-1", LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 5)));
 
         assertThat(reservationRepository.existsOverlapping(
-                room.getId(), LocalDate.of(2026, 11, 4), LocalDate.of(2026, 11, 6)))
+                        room.getId(), LocalDate.of(2026, 11, 4), LocalDate.of(2026, 11, 6)))
                 .isTrue();
         assertThat(reservationRepository.existsOverlapping(
-                room.getId(), LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 7)))
+                        room.getId(), LocalDate.of(2026, 11, 5), LocalDate.of(2026, 11, 7)))
                 .isFalse();
         assertThat(reservationRepository.existsOverlapping(
-                room.getId(), LocalDate.of(2026, 10, 30), LocalDate.of(2026, 11, 1)))
+                        room.getId(), LocalDate.of(2026, 10, 30), LocalDate.of(2026, 11, 1)))
                 .isFalse();
     }
 

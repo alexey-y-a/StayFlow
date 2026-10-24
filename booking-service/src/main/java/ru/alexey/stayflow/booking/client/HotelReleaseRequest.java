@@ -2,5 +2,4 @@ package ru.alexey.stayflow.booking.client;
 
 import java.util.UUID;
 
-public record HotelReleaseRequest(UUID bookingId, String requestId) {
-}
+public record HotelReleaseRequest(UUID bookingId, String requestId) {}

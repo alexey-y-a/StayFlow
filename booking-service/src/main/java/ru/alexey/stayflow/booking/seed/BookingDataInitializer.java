@@ -13,11 +13,7 @@ import ru.alexey.stayflow.booking.repository.UserRepository;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(
-        prefix = "stayflow.seed",
-        name = "enabled",
-        havingValue = "true",
-        matchIfMissing = true)
+@ConditionalOnProperty(prefix = "stayflow.seed", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class BookingDataInitializer implements ApplicationRunner {
 
     private final UserRepository userRepository;

@@ -18,11 +18,8 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException authException)
+            HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
-        SecurityErrorWriter.write(
-                objectMapper, request, response, ErrorCode.UNAUTHORIZED, "Authentication required");
+        SecurityErrorWriter.write(objectMapper, request, response, ErrorCode.UNAUTHORIZED, "Authentication required");
     }
 }
