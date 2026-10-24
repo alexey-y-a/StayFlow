@@ -11,5 +11,4 @@ public record HotelResponse(
         String description,
         BigDecimal rating,
         Instant createdAt,
-        Instant updatedAt) {
-}
+        Instant updatedAt) {}

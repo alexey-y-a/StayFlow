@@ -20,32 +20,25 @@ public interface RoomReservationRepository extends JpaRepository<RoomReservation
 
     boolean existsByRoomId(Long roomId);
 
-    long countByRoomIdAndStatusAndEndDateGreaterThan(
-            Long roomId, ReservationStatus status, LocalDate date);
+    long countByRoomIdAndStatusAndEndDateGreaterThan(Long roomId, ReservationStatus status, LocalDate date);
 
-    @Query(
-            """
+    @Query("""
             select count(rr) from RoomReservation rr
             where rr.room.hotel.id = :hotelId
               and rr.status = :status
               and rr.endDate > :date
             """)
     long countActiveByHotel(
-            @Param("hotelId") Long hotelId,
-            @Param("status") ReservationStatus status,
-            @Param("date") LocalDate date);
+            @Param("hotelId") Long hotelId, @Param("status") ReservationStatus status, @Param("date") LocalDate date);
 
-    @Query(
-            """
+    @Query("""
             select count(distinct rr.room.id) from RoomReservation rr
             where rr.room.hotel.id = :hotelId
               and rr.status = :status
               and rr.endDate > :date
             """)
     long countOccupiedRoomsByHotel(
-            @Param("hotelId") Long hotelId,
-            @Param("status") ReservationStatus status,
-            @Param("date") LocalDate date);
+            @Param("hotelId") Long hotelId, @Param("status") ReservationStatus status, @Param("date") LocalDate date);
 
     default boolean existsOverlapping(Long roomId, LocalDate startDate, LocalDate endDate) {
         return existsByRoomIdAndStatusAndStartDateLessThanAndEndDateGreaterThan(

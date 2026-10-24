@@ -54,7 +54,7 @@ mvn -pl hotel-service test -Dtest=AvailabilityServiceIntegrationTest#confirmIsId
 
 `GatewayRouteTest` на WireMock проверяет: маршрутизацию логина и истории броней на Booking, отелей и номеров на Hotel, JSON 401 без токена, блокировку `/api/rooms/{id}/confirm-availability` и `release` (404), удаление подделанного `X-Internal-Api-Key`, доступ к админскому пути `/api/users`.
 
-### hotel-service (27 тестов)
+### hotel-service (29 тестов)
 
 | Класс | Проверяет |
 |---|---|
@@ -62,9 +62,9 @@ mvn -pl hotel-service test -Dtest=AvailabilityServiceIntegrationTest#confirmIsId
 | `HotelControllerTest`, `RoomControllerTest` | валидация, коды ответов, пагинация |
 | `AvailabilityServiceIntegrationTest` | подтверждение доступности, рост `timesBooked`, идемпотентность по `requestId`, параллельная повторная доставка `confirm`, отказ при пересечении дат, release и его идемпотентность, сортировка рекомендаций, параллельные подтверждения |
 | `RoomReservationRepositoryTest` | уникальные ограничения, check-констрейнты, поиск пересечений |
-| `SecurityIntegrationTest` | роли, 401/403 в JSON, внутренний ключ |
+| `SecurityIntegrationTest` | роли, 401/403 в JSON, внутренний ключ, внутренний recommend |
 
-### booking-service (38 тестов)
+### booking-service (39 тестов)
 
 | Класс | Проверяет |
 |---|---|
@@ -77,7 +77,19 @@ mvn -pl hotel-service test -Dtest=AvailabilityServiceIntegrationTest#confirmIsId
 | `BookingRepositoryTest` | уникальность `request_id` и `username`, журнал `booking_events` |
 | `BookingConcurrencyIntegrationTest` | параллельные запросы с одним `Idempotency-Key`, параллельные брони одного номера, отсутствие дублей |
 
-## 4. Сценарии, которые проверяет ментор
+## 4. Нагрузочная проверка
+
+```bash
+./scripts/load-test.sh 50
+```
+
+Скрипт регистрирует отдельного пользователя и берёт отель из seed. Фаза 1: 50 параллельных броней с разными `Idempotency-Key` на одни даты, ожидаются несколько `201` по числу свободных номеров и остальные `409`, ни одного `5xx`. Фаза 2: 50 параллельных запросов с одним ключом, ожидаются 50 ответов `201` с одним бронированием и прирост ровно на одну запись. В конце печатается статистика отеля.
+
+Даты сдвигаются на каждый прогон, поэтому повтор не упирается в занятые слоты.
+
+Результат последнего прогона: фаза 1 - 201=4, 409=46, other=0 за 1 с; фаза 2 - 201=50, other=0, добавлена одна запись; `LOAD TEST PASSED`.
+
+## 5. Сквозные проверки
 
 1. Регистрация и вход, получение JWT.
 2. Список отелей и номеров, рекомендации по возрастанию `timesBooked`.

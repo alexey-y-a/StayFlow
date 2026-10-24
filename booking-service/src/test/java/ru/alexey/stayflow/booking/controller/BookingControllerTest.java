@@ -105,7 +105,6 @@ class BookingControllerTest {
 
     @Test
     void cancelsBooking() throws Exception {
-        mockMvc.perform(delete("/booking/" + response.id()))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/booking/" + response.id())).andExpect(status().isNoContent());
     }
 }

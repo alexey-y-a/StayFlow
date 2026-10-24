@@ -29,8 +29,7 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
 
     List<Room> findByHotelIdOrderByTimesBookedDescIdAsc(Long hotelId, Pageable pageable);
 
-    @Query(
-            """
+    @Query("""
             select r from Room r
             where r.available = true
               and not exists (
@@ -46,8 +45,7 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
-    @Query(
-            """
+    @Query("""
             select r from Room r
             where r.available = true
               and r.hotel.id = :hotelId

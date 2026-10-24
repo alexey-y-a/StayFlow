@@ -8,5 +8,4 @@ public record CreateBookingRequest(
         Long hotelId,
         @NotNull LocalDate startDate,
         @NotNull LocalDate endDate,
-        boolean autoSelect) {
-}
+        boolean autoSelect) {}

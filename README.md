@@ -2,23 +2,6 @@
 
 Платформа бронирования отелей на Spring Boot и Spring Cloud: API Gateway, Eureka, два доменных сервиса, JWT-аутентификация и сага подтверждения бронирования с компенсацией.
 
-Учебный проект по курсу «Фреймворк Spring и работа с REST API» (НИЯУ МИФИ).
-
-## Содержание
-
-- [Архитектура](#архитектура)
-- [Модули](#модули)
-- [Стек](#стек)
-- [Требования](#требования)
-- [Переменные окружения](#переменные-окружения)
-- [Запуск](#запуск)
-- [Быстрая проверка](#быстрая-проверка)
-- [API](#api)
-- [Тестовые пользователи](#тестовые-пользователи)
-- [Тесты](#тесты)
-- [Документация](#документация)
-- [Ограничения](#ограничения)
-
 ## Архитектура
 
 ```mermaid
@@ -32,16 +15,14 @@ flowchart LR
     HS -. регистрация .-> EU
 ```
 
-Ключевые особенности:
+Как устроено:
 
-- database per service: у каждого сервиса своя in-memory H2, общих таблиц нет;
-- сага-оркестрация в Booking: `PENDING` → `CONFIRMED` либо `PENDING` → `CANCELLED` с компенсацией через `POST /api/rooms/{id}/release`;
-- идемпотентность: заголовок `Idempotency-Key` в Booking, таблица `processed_requests` в Hotel;
-- устойчивость вызовов: Retry, TimeLimiter, CircuitBreaker (Resilience4j);
-- трассировка: `X-Request-Id` → MDC `traceId`, `X-Booking-Id` → MDC `bookingId`;
-- внутренние эндпоинты Hotel закрыты ключом `X-Internal-Api-Key` и заблокированы на Gateway.
-
-Подробнее: [docs/architecture.md](docs/architecture.md), [docs/database.md](docs/database.md), [docs/api.md](docs/api.md), [docs/adr](docs/adr).
+- у каждого сервиса своя in-memory H2, общих таблиц нет;
+- Booking ведёт сагу: `PENDING` → `CONFIRMED` либо `PENDING` → `CANCELLED` с компенсацией через `POST /api/rooms/{id}/release`;
+- идемпотентность: `Idempotency-Key` в Booking и `processed_requests` в Hotel;
+- `Retry`, `TimeLimiter` и `CircuitBreaker` на вызове Hotel;
+- `X-Request-Id` и `X-Booking-Id` уходят в MDC (`traceId`, `bookingId`);
+- внутренние эндпоинты Hotel закрыты `X-Internal-Api-Key` и заблокированы на Gateway.
 
 ## Модули
 
@@ -131,12 +112,29 @@ docker compose down
 
 Скрипт ждёт готовности Gateway, регистрирует пользователя, читает отели и номера, создаёт бронирование с автоподбором и проверяет его в истории.
 
-Swagger UI доступен на прямых портах сервисов:
+Нагрузочная проверка конкурентных броней:
+
+```bash
+./scripts/load-test.sh 50
+```
+
+Скрипт делает 50 параллельных броней с разными ключами и 50 с одним ключом, печатает распределение статусов и статистику отеля.
+
+Swagger UI:
 
 - Hotel Service: http://localhost:8081/swagger-ui.html
 - Booking Service: http://localhost:8082/swagger-ui.html
 
-OpenAPI-спецификация: `/v3/api-docs` на том же порту.
+Спецификации: `/v3/api-docs` на портах 8081 и 8082. В спецификации указан адрес самого сервиса, поэтому Try it out работает напрямую, без Gateway.
+
+Токен для Authorize удобно копировать в буфер обмена:
+
+```bash
+./scripts/login.sh
+pbcopy < /tmp/stayflow-user-token.txt
+```
+
+Символ `%` в конце вывода терминала это маркер zsh о строке без перевода строки, к токену он не относится и копировать его не нужно.
 
 ## API
 
@@ -171,6 +169,7 @@ OpenAPI-спецификация: `/v3/api-docs` на том же порту.
 
 | Метод | Путь | Назначение |
 |---|---|---|
+| GET | `/api/rooms/internal/recommend` | рекомендации для Booking Service |
 | POST | `/api/rooms/{id}/confirm-availability` | подтвердить доступность и создать бронь слота |
 | POST | `/api/rooms/{id}/release` | компенсация: снять бронь слота |
 
@@ -179,13 +178,13 @@ OpenAPI-спецификация: `/v3/api-docs` на том же порту.
 ```bash
 TOKEN=$(curl -sS -X POST http://localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"username":"user","password":"User123!"}' | jq -r .token)
+  -d '{"username":"user","password":"User123!"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])')
 
 curl -sS "http://localhost:8080/api/rooms/recommend?hotelId=1&startDate=2026-11-01&endDate=2026-11-05" \
-  -H "Authorization: Bearer $TOKEN"
+  --oauth2-bearer "$TOKEN"
 
 curl -sS -X POST http://localhost:8080/api/bookings \
-  -H "Authorization: Bearer $TOKEN" \
+  --oauth2-bearer "$TOKEN" \
   -H 'Content-Type: application/json' \
   -H "Idempotency-Key: demo-$(uuidgen)" \
   -d '{"hotelId":1,"startDate":"2026-11-01","endDate":"2026-11-05","autoSelect":true}'
@@ -227,6 +226,21 @@ mvn clean verify
 - [docs/api.md](docs/api.md) - справочник API, форматы ошибок, идемпотентность;
 - [docs/testing.md](docs/testing.md) - запуск тестов, покрытие, сценарии проверки;
 - [docs/adr](docs/adr) - архитектурные решения.
+
+## Пути API
+
+Снаружи запросы идут через Gateway на 8080, внутри сервисов пути короче:
+
+| Через Gateway | В сервисе |
+|---|---|
+| `POST /api/auth/register`, `POST /api/auth/login` | `POST /user/register`, `POST /user/auth` |
+| `POST /api/users`, `PATCH /api/users`, `DELETE /api/users?id={id}` | `POST /user`, `PATCH /user`, `DELETE /user?id={id}` |
+| `POST /api/bookings`, `GET /api/bookings` | `POST /booking`, `GET /bookings` |
+| `GET /api/bookings/{id}`, `DELETE /api/bookings/{id}` | `GET /booking/{id}`, `DELETE /booking/{id}` |
+| `/api/hotels/**`, `/api/rooms/**` | hotel-service, пути без изменений |
+| `/api/rooms/{id}/confirm-availability`, `/api/rooms/{id}/release` | только напрямую с `X-Internal-Api-Key`, Gateway возвращает 404 |
+
+Дополнительно реализованы `GET/PUT/DELETE /api/hotels/{id}`, `GET/PUT/DELETE /api/rooms/{id}`, `GET /api/hotels/{id}/statistics`, `GET /api/users`.
 
 ## Ограничения
 

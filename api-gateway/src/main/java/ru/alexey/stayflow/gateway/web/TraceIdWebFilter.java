@@ -18,8 +18,7 @@ public class TraceIdWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String traceId = resolveTraceId(
-                exchange.getRequest().getHeaders().getFirst(GatewayHeaders.REQUEST_ID));
+        String traceId = resolveTraceId(exchange.getRequest().getHeaders().getFirst(GatewayHeaders.REQUEST_ID));
         ServerHttpRequest request = exchange.getRequest()
                 .mutate()
                 .headers(headers -> {

@@ -35,8 +35,7 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "List users")
-    public PageResponse<UserResponse> findAll(
-            @PageableDefault(size = 10, sort = "username") Pageable pageable) {
+    public PageResponse<UserResponse> findAll(@PageableDefault(size = 10, sort = "username") Pageable pageable) {
         return userService.findAll(pageable);
     }
 

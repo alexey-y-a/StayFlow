@@ -194,8 +194,7 @@ public class BookingServiceImpl implements BookingService {
             log.info("Recovery confirmed booking {}", bookingId);
         } catch (RoomNotAvailableException exception) {
             markCancelled(bookingId, "Room is not available");
-            boolean released = releaseQuietly(
-                    booking.getRoomId(), bookingId, releaseRequestId(booking.getRequestId()));
+            boolean released = releaseQuietly(booking.getRoomId(), bookingId, releaseRequestId(booking.getRequestId()));
             markCompensation(bookingId, released ? CompensationStatus.DONE : CompensationStatus.PENDING);
             log.info("Recovery cancelled booking {}", bookingId);
         } catch (RemoteServiceException exception) {
@@ -206,8 +205,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void retryCompensation(Booking booking) {
-        boolean released = releaseQuietly(
-                booking.getRoomId(), booking.getId(), releaseRequestId(booking.getRequestId()));
+        boolean released =
+                releaseQuietly(booking.getRoomId(), booking.getId(), releaseRequestId(booking.getRequestId()));
         if (released) {
             markCompensation(booking.getId(), CompensationStatus.DONE);
             log.info("Compensation completed for booking {}", booking.getId());
@@ -234,8 +233,7 @@ public class BookingServiceImpl implements BookingService {
         return List.of(new Candidate(request.roomId(), request.hotelId()));
     }
 
-    private Booking createPending(
-            User user, Candidate candidate, CreateBookingRequest request, String requestId) {
+    private Booking createPending(User user, Candidate candidate, CreateBookingRequest request, String requestId) {
         return transactionTemplate.execute(status -> {
             User managedUser = userRepository
                     .findById(user.getId())
@@ -354,8 +352,7 @@ public class BookingServiceImpl implements BookingService {
                 || Objects.equals(existing.getHotelId(), request.hotelId());
         boolean sameRoom = request.autoSelect() || Objects.equals(existing.getRoomId(), request.roomId());
         if (!sameDates || !sameHotel || !sameRoom) {
-            throw new IdempotencyConflictException(
-                    "Idempotency-Key has already been used with a different payload");
+            throw new IdempotencyConflictException("Idempotency-Key has already been used with a different payload");
         }
     }
 
@@ -391,9 +388,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private String releaseRequestId(String requestId) {
-        return UUID.nameUUIDFromBytes((requestId + ":release").getBytes(StandardCharsets.UTF_8)).toString();
+        return UUID.nameUUIDFromBytes((requestId + ":release").getBytes(StandardCharsets.UTF_8))
+                .toString();
     }
 
-    private record Candidate(Long roomId, Long hotelId) {
-    }
+    private record Candidate(Long roomId, Long hotelId) {}
 }

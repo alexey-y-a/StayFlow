@@ -15,8 +15,7 @@ import ru.alexey.stayflow.common.web.TraceHeaders;
 
 public final class SecurityErrorWriter {
 
-    private SecurityErrorWriter() {
-    }
+    private SecurityErrorWriter() {}
 
     public static void write(
             ObjectMapper objectMapper,

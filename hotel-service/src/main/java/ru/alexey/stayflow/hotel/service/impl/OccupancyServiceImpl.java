@@ -13,7 +13,6 @@ import ru.alexey.stayflow.hotel.dto.OccupancyStatsResponse;
 import ru.alexey.stayflow.hotel.dto.RoomLoadResponse;
 import ru.alexey.stayflow.hotel.model.Hotel;
 import ru.alexey.stayflow.hotel.model.ReservationStatus;
-import ru.alexey.stayflow.hotel.model.Room;
 import ru.alexey.stayflow.hotel.repository.HotelRepository;
 import ru.alexey.stayflow.hotel.repository.RoomRepository;
 import ru.alexey.stayflow.hotel.repository.RoomReservationRepository;
@@ -37,25 +36,22 @@ public class OccupancyServiceImpl implements OccupancyService {
         LocalDate today = LocalDate.now();
         long totalRooms = roomRepository.countByHotelId(hotelId);
         long availableRooms = roomRepository.countByHotelIdAndAvailableTrue(hotelId);
-        long occupiedRooms = reservationRepository.countOccupiedRoomsByHotel(
-                hotelId, ReservationStatus.CONFIRMED, today);
-        long activeReservations = reservationRepository.countActiveByHotel(
-                hotelId, ReservationStatus.CONFIRMED, today);
+        long occupiedRooms =
+                reservationRepository.countOccupiedRoomsByHotel(hotelId, ReservationStatus.CONFIRMED, today);
+        long activeReservations = reservationRepository.countActiveByHotel(hotelId, ReservationStatus.CONFIRMED, today);
         long totalTimesBooked = roomRepository.sumTimesBookedByHotelId(hotelId);
         double averageTimesBooked = totalRooms == 0 ? 0.0 : (double) totalTimesBooked / totalRooms;
-        double occupancyRate =
-                totalRooms == 0 ? 0.0 : round((double) occupiedRooms / totalRooms * 100.0);
+        double occupancyRate = totalRooms == 0 ? 0.0 : round((double) occupiedRooms / totalRooms * 100.0);
 
-        List<RoomLoadResponse> topRooms = roomRepository
-                .findByHotelIdOrderByTimesBookedDescIdAsc(hotelId, PageRequest.of(0, 5))
-                .stream()
-                .map(room -> new RoomLoadResponse(
-                        room.getId(),
-                        room.getNumber(),
-                        room.getTimesBooked(),
-                        reservationRepository.countByRoomIdAndStatusAndEndDateGreaterThan(
-                                room.getId(), ReservationStatus.CONFIRMED, today)))
-                .toList();
+        List<RoomLoadResponse> topRooms =
+                roomRepository.findByHotelIdOrderByTimesBookedDescIdAsc(hotelId, PageRequest.of(0, 5)).stream()
+                        .map(room -> new RoomLoadResponse(
+                                room.getId(),
+                                room.getNumber(),
+                                room.getTimesBooked(),
+                                reservationRepository.countByRoomIdAndStatusAndEndDateGreaterThan(
+                                        room.getId(), ReservationStatus.CONFIRMED, today)))
+                        .toList();
 
         return new OccupancyStatsResponse(
                 hotelId,

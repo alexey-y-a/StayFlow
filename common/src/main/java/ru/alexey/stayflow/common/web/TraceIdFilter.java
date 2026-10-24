@@ -18,8 +18,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
     private static final int MAX_TRACE_ID_LENGTH = 64;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String traceId = resolveTraceId(request.getHeader(TraceHeaders.REQUEST_ID));
         String bookingId = request.getHeader(TraceHeaders.BOOKING_ID);

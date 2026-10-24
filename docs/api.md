@@ -117,7 +117,7 @@
 
 ```bash
 curl -sS "http://localhost:8080/api/hotels?city=Москва&minRating=4.5&page=0&size=5" \
-  -H "Authorization: Bearer $TOKEN"
+  --oauth2-bearer "$TOKEN"
 ```
 
 ### GET /api/hotels/{id}
@@ -169,7 +169,7 @@ curl -sS "http://localhost:8080/api/hotels?city=Москва&minRating=4.5&page=
 
 ### GET /api/rooms (USER, ADMIN)
 
-Фильтры: `hotelId`, `type` (`SINGLE`, `DOUBLE`, `TWIN`, `SUITE`, `FAMILY`), `minCapacity`, `maxPrice`, `available`; пагинация `page`, `size`, `sort` (по умолчанию `id`).
+Фильтры: `hotelId`, `type` (`SINGLE`, `DOUBLE`, `TWIN`, `SUITE`, `FAMILY`), `minCapacity`, `maxPrice`, `available`; пагинация `page`, `size`, `sort` (по умолчанию `id`). Если `available` не передан, возвращаются только номера в эксплуатации, то есть `available=true`. Чтобы увидеть выведенные из эксплуатации, передай `available=false`.
 
 `RoomResponse`: `id`, `hotelId`, `hotelName`, `number`, `type`, `capacity`, `pricePerNight`, `floor`, `available`, `timesBooked`, `description`, `createdAt`, `updatedAt`.
 
@@ -189,7 +189,7 @@ curl -sS "http://localhost:8080/api/hotels?city=Москва&minRating=4.5&page=
 
 ```bash
 curl -sS "http://localhost:8080/api/rooms/recommend?hotelId=1&startDate=2026-11-01&endDate=2026-11-05" \
-  -H "Authorization: Bearer $TOKEN"
+  --oauth2-bearer "$TOKEN"
 ```
 
 Ответ - массив `RoomResponse` (без обёртки пагинации).
@@ -280,6 +280,14 @@ curl -sS "http://localhost:8080/api/rooms/recommend?hotelId=1&startDate=2026-11-
 ## 7. Внутренние эндпоинты Hotel Service
 
 Не публикуются через Gateway: Gateway возвращает `404` на эти пути. Вызываются только из Booking Service с заголовком `X-Internal-Api-Key`.
+
+### GET /api/rooms/internal/recommend
+
+Внутренний вариант рекомендаций для Booking Service. Требует `X-Internal-Api-Key`, JWT не нужен. Через Gateway недоступен.
+
+Параметры: `hotelId`, `startDate`, `endDate` (все необязательные). Ответ - массив `RoomResponse`, отсортированный по возрастанию `timesBooked`, при равенстве по `id`.
+
+Ошибки: 401 (нет или неверный ключ).
 
 ### POST /api/rooms/{id}/confirm-availability
 

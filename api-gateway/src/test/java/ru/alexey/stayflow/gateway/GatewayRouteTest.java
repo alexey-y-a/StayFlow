@@ -43,12 +43,8 @@ class GatewayRouteTest {
 
     @DynamicPropertySource
     static void discoveryProperties(DynamicPropertyRegistry registry) {
-        registry.add(
-                "spring.cloud.discovery.client.simple.instances.booking-service[0].uri",
-                WIRE_MOCK::baseUrl);
-        registry.add(
-                "spring.cloud.discovery.client.simple.instances.hotel-service[0].uri",
-                WIRE_MOCK::baseUrl);
+        registry.add("spring.cloud.discovery.client.simple.instances.booking-service[0].uri", WIRE_MOCK::baseUrl);
+        registry.add("spring.cloud.discovery.client.simple.instances.hotel-service[0].uri", WIRE_MOCK::baseUrl);
     }
 
     @AfterAll
@@ -197,7 +193,15 @@ class GatewayRouteTest {
                 .jsonPath("$.code")
                 .isEqualTo("NOT_FOUND");
 
+        webTestClient
+                .get()
+                .uri("/api/rooms/internal/recommend")
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+
         WIRE_MOCK.verify(0, postRequestedFor(urlEqualTo("/api/rooms/1/release")));
+        WIRE_MOCK.verify(0, getRequestedFor(urlEqualTo("/api/rooms/internal/recommend")));
     }
 
     @Test

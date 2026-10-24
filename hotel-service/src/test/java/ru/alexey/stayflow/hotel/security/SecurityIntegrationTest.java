@@ -97,6 +97,19 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void internalRecommendRequiresInternalKey() throws Exception {
+        mockMvc.perform(get("/api/rooms/internal/recommend"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void internalRecommendAcceptsValidKey() throws Exception {
+        mockMvc.perform(get("/api/rooms/internal/recommend").header(TraceHeaders.INTERNAL_API_KEY, "test-internal-key"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void internalEndpointAcceptsValidKey() throws Exception {
         mockMvc.perform(post("/api/rooms/999/confirm-availability")
                         .header(TraceHeaders.INTERNAL_API_KEY, "test-internal-key")

@@ -73,7 +73,9 @@ class HotelControllerTest {
 
     @Test
     void returnsValidationErrorForInvalidCreateRequest() throws Exception {
-        mockMvc.perform(post("/api/hotels").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/hotels")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }

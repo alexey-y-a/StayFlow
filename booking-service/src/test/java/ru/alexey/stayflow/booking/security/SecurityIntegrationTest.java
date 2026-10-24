@@ -87,9 +87,7 @@ class SecurityIntegrationTest {
     @Test
     @WithMockUser(roles = "USER")
     void userCannotCreateUser() throws Exception {
-        mockMvc.perform(post("/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(post("/user").contentType(MediaType.APPLICATION_JSON).content("""
                                 {
                                   "username": "managed",
                                   "password": "Password123!",
@@ -102,9 +100,8 @@ class SecurityIntegrationTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void adminCanCreateUpdateAndDeleteUser() throws Exception {
-        MvcResult created = mockMvc.perform(post("/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        MvcResult created = mockMvc.perform(
+                        post("/user").contentType(MediaType.APPLICATION_JSON).content("""
                                 {
                                   "username": "managed",
                                   "password": "Password123!",
@@ -118,9 +115,7 @@ class SecurityIntegrationTest {
         JsonNode body = objectMapper.readTree(created.getResponse().getContentAsString());
         long id = body.get("id").asLong();
 
-        mockMvc.perform(patch("/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(patch("/user").contentType(MediaType.APPLICATION_JSON).content("""
                                 {
                                   "id": %d,
                                   "role": "USER",
@@ -130,7 +125,6 @@ class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("USER"));
 
-        mockMvc.perform(delete("/user").param("id", String.valueOf(id)))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/user").param("id", String.valueOf(id))).andExpect(status().isNoContent());
     }
 }

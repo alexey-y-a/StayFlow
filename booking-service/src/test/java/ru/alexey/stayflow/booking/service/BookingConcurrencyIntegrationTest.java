@@ -91,7 +91,9 @@ class BookingConcurrencyIntegrationTest {
         List<Booking> bookings = bookingRepository.findAll();
         assertThat(bookings).hasSize(1);
         assertThat(responses).hasSize(THREADS);
-        assertThat(responses).extracting(BookingResponse::id).containsOnly(bookings.getFirst().getId());
+        assertThat(responses)
+                .extracting(BookingResponse::id)
+                .containsOnly(bookings.getFirst().getId());
         assertThat(bookings.getFirst().getStatus()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(bookingEventRepository.count()).isEqualTo(2);
     }
@@ -110,14 +112,20 @@ class BookingConcurrencyIntegrationTest {
 
         List<BookingStatus> outcomes = runInParallel(index -> {
             try {
-                return bookingService.create("concurrent", "key-" + index, request(1L, 10L)).status();
+                return bookingService
+                        .create("concurrent", "key-" + index, request(1L, 10L))
+                        .status();
             } catch (ConflictException exception) {
                 return BookingStatus.CANCELLED;
             }
         });
 
-        assertThat(outcomes).filteredOn(status -> status == BookingStatus.CONFIRMED).hasSize(1);
-        assertThat(outcomes).filteredOn(status -> status == BookingStatus.CANCELLED).hasSize(THREADS - 1);
+        assertThat(outcomes)
+                .filteredOn(status -> status == BookingStatus.CONFIRMED)
+                .hasSize(1);
+        assertThat(outcomes)
+                .filteredOn(status -> status == BookingStatus.CANCELLED)
+                .hasSize(THREADS - 1);
         assertThat(bookingRepository.count()).isEqualTo(THREADS);
         assertThat(bookingRepository.findAll())
                 .extracting(Booking::getRequestId)

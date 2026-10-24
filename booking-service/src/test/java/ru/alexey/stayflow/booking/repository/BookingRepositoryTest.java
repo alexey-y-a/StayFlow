@@ -37,11 +37,13 @@ class BookingRepositoryTest {
         Booking booking = bookingRepository.saveAndFlush(booking(user, "req-1"));
 
         assertThat(bookingRepository.findByRequestId("req-1")).contains(booking);
-        assertThat(bookingRepository.findByUser_Id(user.getId(), PageRequest.of(0, 10)).getContent())
+        assertThat(bookingRepository
+                        .findByUser_Id(user.getId(), PageRequest.of(0, 10))
+                        .getContent())
                 .containsExactly(booking);
-        assertThat(bookingRepository.findByUser_IdAndStatus(
-                        user.getId(), BookingStatus.PENDING, PageRequest.of(0, 10))
-                .getContent())
+        assertThat(bookingRepository
+                        .findByUser_IdAndStatus(user.getId(), BookingStatus.PENDING, PageRequest.of(0, 10))
+                        .getContent())
                 .containsExactly(booking);
     }
 

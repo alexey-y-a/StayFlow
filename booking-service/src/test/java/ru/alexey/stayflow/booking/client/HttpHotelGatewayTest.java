@@ -1,9 +1,13 @@
 package ru.alexey.stayflow.booking.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -51,6 +55,24 @@ class HttpHotelGatewayTest {
     }
 
     @Test
+    void callsInternalRecommendEndpoint() {
+        wireMock.stubFor(get(urlPathEqualTo("/api/rooms/internal/recommend"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[]")));
+
+        HttpHotelGateway gateway = gateway(retry(1), timeLimiter(1000));
+
+        assertThat(gateway.recommend(1L, START, END)).isEmpty();
+        wireMock.verify(getRequestedFor(urlPathEqualTo("/api/rooms/internal/recommend"))
+                .withQueryParam("hotelId", equalTo("1"))
+                .withQueryParam("startDate", equalTo(START.toString()))
+                .withQueryParam("endDate", equalTo(END.toString()))
+                .withHeader("X-Internal-Api-Key", equalTo("test-internal-key")));
+    }
+
+    @Test
     void retriesServerErrors() {
         wireMock.stubFor(post(urlEqualTo("/api/rooms/1/confirm-availability"))
                 .willReturn(aResponse().withStatus(500)));
@@ -86,8 +108,9 @@ class HttpHotelGatewayTest {
         HttpHotelGateway gateway = gateway(retry(1), timeLimiter(200));
 
         assertThatThrownBy(() -> gateway.confirmAvailability(1L, BOOKING_ID, "req-1", START, END))
-                .isInstanceOfSatisfying(RemoteServiceException.class, exception ->
-                        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REMOTE_TIMEOUT));
+                .isInstanceOfSatisfying(
+                        RemoteServiceException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REMOTE_TIMEOUT));
         wireMock.verify(1, postRequestedFor(urlEqualTo("/api/rooms/1/confirm-availability")));
     }
 
@@ -101,8 +124,7 @@ class HttpHotelGatewayTest {
 
         HttpHotelGateway gateway = gateway(retry(3), timeLimiter(1000));
 
-        HotelConfirmResponse response =
-                gateway.confirmAvailability(1L, BOOKING_ID, "req-1", START, END);
+        HotelConfirmResponse response = gateway.confirmAvailability(1L, BOOKING_ID, "req-1", START, END);
 
         assertThat(response.available()).isTrue();
         assertThat(response.hotelId()).isEqualTo(10L);

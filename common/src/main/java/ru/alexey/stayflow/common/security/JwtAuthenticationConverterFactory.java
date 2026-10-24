@@ -8,8 +8,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 
 public final class JwtAuthenticationConverterFactory {
 
-    private JwtAuthenticationConverterFactory() {
-    }
+    private JwtAuthenticationConverterFactory() {}
 
     public static Converter<Jwt, AbstractAuthenticationToken> create() {
         JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();

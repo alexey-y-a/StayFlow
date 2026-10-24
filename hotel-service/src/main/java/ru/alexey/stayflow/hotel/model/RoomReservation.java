@@ -31,12 +31,12 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(
         name = "room_reservations",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_room_reservations_booking", columnNames = "booking_id"),
-                @UniqueConstraint(name = "uk_room_reservations_request", columnNames = "request_id")
+            @UniqueConstraint(name = "uk_room_reservations_booking", columnNames = "booking_id"),
+            @UniqueConstraint(name = "uk_room_reservations_request", columnNames = "request_id")
         },
         indexes = {
-                @Index(name = "idx_reservations_room_dates", columnList = "room_id, start_date, end_date"),
-                @Index(name = "idx_reservations_status", columnList = "status")
+            @Index(name = "idx_reservations_room_dates", columnList = "room_id, start_date, end_date"),
+            @Index(name = "idx_reservations_status", columnList = "status")
         })
 public class RoomReservation {
 
@@ -45,10 +45,7 @@ public class RoomReservation {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "room_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_reservations_room"))
+    @JoinColumn(name = "room_id", nullable = false, foreignKey = @ForeignKey(name = "fk_reservations_room"))
     private Room room;
 
     @Column(name = "booking_id", nullable = false, unique = true)

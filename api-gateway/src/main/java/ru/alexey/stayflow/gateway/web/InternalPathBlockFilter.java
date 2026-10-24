@@ -20,7 +20,7 @@ public class InternalPathBlockFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
-        if (path.matches("/api/rooms/\\d+/(confirm-availability|release)")) {
+        if (path.matches("/api/rooms/(\\d+/(confirm-availability|release)|internal/.*)")) {
             return errorWriter.write(exchange, HttpStatus.NOT_FOUND, "NOT_FOUND", "Resource not found");
         }
         return chain.filter(exchange);

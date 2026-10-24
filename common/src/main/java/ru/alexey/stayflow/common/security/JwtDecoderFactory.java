@@ -8,8 +8,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 public final class JwtDecoderFactory {
 
-    private JwtDecoderFactory() {
-    }
+    private JwtDecoderFactory() {}
 
     public static JwtDecoder create(JwtProperties properties) {
         SecretKey key = JwtEncoderFactory.secretKey(properties);

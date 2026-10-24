@@ -26,19 +26,17 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !(path.matches("/api/rooms/\\d+/confirm-availability")
-                || path.matches("/api/rooms/\\d+/release"));
+        return !(path.matches("/api/rooms/\\d+/(confirm-availability|release)")
+                || path.equals("/api/rooms/internal/recommend"));
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String providedKey = request.getHeader(TraceHeaders.INTERNAL_API_KEY);
         boolean valid = providedKey != null
                 && MessageDigest.isEqual(
-                        expectedKey.getBytes(StandardCharsets.UTF_8),
-                        providedKey.getBytes(StandardCharsets.UTF_8));
+                        expectedKey.getBytes(StandardCharsets.UTF_8), providedKey.getBytes(StandardCharsets.UTF_8));
         if (!valid) {
             SecurityErrorWriter.write(
                     objectMapper, request, response, ErrorCode.UNAUTHORIZED, "Invalid internal API key");

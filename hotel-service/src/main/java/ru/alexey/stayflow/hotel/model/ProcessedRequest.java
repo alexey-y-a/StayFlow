@@ -22,10 +22,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Table(
         name = "processed_requests",
-        uniqueConstraints =
-        @UniqueConstraint(
-                name = "uk_processed_requests_request",
-                columnNames = "request_id"),
+        uniqueConstraints = @UniqueConstraint(name = "uk_processed_requests_request", columnNames = "request_id"),
         indexes = @Index(name = "idx_processed_requests_booking", columnList = "booking_id"))
 public class ProcessedRequest {
 

@@ -11,8 +11,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 class JwtConfigTest {
 
-    private static final String SECRET = Base64.getEncoder()
-            .encodeToString("0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8));
+    private static final String SECRET =
+            Base64.getEncoder().encodeToString("0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8));
 
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner().withUserConfiguration(JwtConfig.class);
@@ -31,9 +31,7 @@ class JwtConfigTest {
     @Test
     void createsEncoderAndTokenServiceWhenIssuingEnabled() {
         contextRunner
-                .withPropertyValues(
-                        "stayflow.security.jwt.secret=" + SECRET,
-                        "stayflow.security.jwt.issue=true")
+                .withPropertyValues("stayflow.security.jwt.secret=" + SECRET, "stayflow.security.jwt.issue=true")
                 .run(context -> {
                     assertThat(context).hasSingleBean(JwtDecoder.class);
                     assertThat(context).hasSingleBean(JwtEncoder.class);

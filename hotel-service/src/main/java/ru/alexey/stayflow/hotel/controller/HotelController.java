@@ -57,7 +57,8 @@ public class HotelController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HotelResponse> create(@Valid @RequestBody HotelCreateRequest request) {
         HotelResponse response = hotelService.create(request);
-        return ResponseEntity.created(URI.create("/api/hotels/" + response.id())).body(response);
+        return ResponseEntity.created(URI.create("/api/hotels/" + response.id()))
+                .body(response);
     }
 
     @PutMapping("/{id}")

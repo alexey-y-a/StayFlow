@@ -15,8 +15,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 class JwtTokenServiceTest {
 
-    private static final String SECRET = Base64.getEncoder()
-            .encodeToString("0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8));
+    private static final String SECRET =
+            Base64.getEncoder().encodeToString("0123456789abcdef0123456789abcdef".getBytes(StandardCharsets.UTF_8));
 
     private final JwtProperties properties =
             new JwtProperties(SECRET, "https://stayflow.example", Duration.ofHours(1), true);

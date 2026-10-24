@@ -69,6 +69,5 @@ class GlobalExceptionHandlerTest {
         }
     }
 
-    record TestRequest(@NotBlank String name) {
-    }
+    record TestRequest(@NotBlank String name) {}
 }
