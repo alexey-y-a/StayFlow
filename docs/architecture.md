@@ -56,6 +56,19 @@ flowchart TB
 - у Booking и Hotel нет общей базы, согласованность держится на саге;
 - Eureka не является точкой входа для клиентов.
 
+### Ключевые классы
+
+| Класс | Ответственность |
+|---|---|
+| BookingServiceImpl | оркестрация саги: создание, подтверждение, отмена, чтение |
+| BookingStateService | локальные транзакции состояния и журнал booking_events |
+| BookingRecoveryService | восстановление зависших PENDING и повтор компенсации |
+| BookingRequestValidator | проверки Idempotency-Key, дат и тела повтора |
+| BookingPriceCalculator | расчёт стоимости брони |
+| AvailabilityServiceImpl | подтверждение доступности и release |
+| RoomRecommendationService | рекомендации по times_booked |
+| ReservationReplayService | повторная доставка внутренних вызовов |
+
 ## 2. Поток запроса
 
 1. Клиент отправляет запрос на Gateway с `Authorization: Bearer <JWT>`.
@@ -205,7 +218,7 @@ Hotel:
 | `X-Booking-Id` | корреляция всех шагов одной саги |
 | `X-Internal-Api-Key` | доступ к внутренним эндпоинтам Hotel |
 
-MDC-поля: `traceId`, `bookingId`, `userId`. Формат логов - logstash-encoder (JSON), ключевые переходы состояний пишутся в `booking_events` с `trace_id`.
+MDC-поля: `traceId`, `bookingId`, `userId`. Логи пишутся в JSON через `logstash-logback-encoder` с `includeMdc`, поэтому все три поля попадают в каждую строку. Ключевые переходы состояний дополнительно сохраняются в `booking_events` с `trace_id`.
 
 ## 9. Безопасность
 
